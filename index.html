@@ -1,19 +1,206 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="lv">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Elektricity – Elektrības darbi Latvijā</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <h1>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Et, impedit!</h1>
-<div><ul>
-    <li>helo izmainits</li>
-    <li>sum</li>
-    <li>render</li>
-</ul></div>
-    <script src="/js/script.js">
-    </script>
+    <header class="site-header">
+        <div class="container header-content">
+            <a class="logo" href="#">
+                Elektricity <span class="logo-icon">⚡</span>
+            </a>
+            <nav class="site-nav" aria-label="Galvenā navigācija">
+                <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul id="nav-menu" class="nav-menu">
+                    <li><a href="#pakalpojumi">Pakalpojumi</a></li>
+                    <li><a href="#priekšrocības">Priekšrocības</a></li>
+                    <li><a href="#process">Process</a></li>
+                    <li><a href="#kontakti">Kontakti</a></li>
+                </ul>
+            </nav>
+            <a class="btn btn-primary" href="#pieteikums">Pasūtīt darbus</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-text">
+                    <p class="tag">Elektrības darbi visā Latvijā</p>
+                    <h1>Vienkārši un droši elektrības darbi visā Latvijā</h1>
+                    <p>
+                        Elektroinstalācija dzīvokļiem, mājām un uzņēmumiem. Sertificēti
+                        speciālisti, garantija darbiem un skaidras cenas.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="#pieteikums">Saņemt piedāvājumu</a>
+                        <a class="btn btn-outline" href="tel:+37112345678">Zvanīt</a>
+                    </div>
+                    <div class="hero-pills">
+                        <span>✔ Sertificēti meistari</span>
+                        <span>✔ Garantija darbiem</span>
+                        <span>✔ 24h atbalsts</span>
+                    </div>
+                </div>
+                <div class="hero-card" aria-hidden="true">
+                    <div class="hero-card-inner">
+                        <div class="hero-icon">🔌</div>
+                        <h3>Ātrs izsaukums</h3>
+                        <p>Reaģējam 24h laikā visā Latvijā</p>
+                        <div class="hero-bolt">⚡</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pakalpojumi" class="section">
+            <div class="container">
+                <h2>Mūsu Pakalpojumi</h2>
+                <div class="cards">
+                    <article class="card">
+                        <div class="card-icon">🔌</div>
+                        <h3>Elektroinstalācija</h3>
+                        <p>Jauni projekti, pārbūve, mājas un biroji.</p>
+                    </article>
+                    <article class="card">
+                        <div class="card-icon">💡</div>
+                        <h3>Apgaismojums</h3>
+                        <p>LED, industriālie risinājumi un dizaina gaismas.</p>
+                    </article>
+                    <article class="card">
+                        <div class="card-icon">🛠️</div>
+                        <h3>Remonts</h3>
+                        <p>Vecu vadu maiņa, bojājumu novēršana.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="priekšrocības" class="section section-muted">
+            <div class="container">
+                <h2>Kāpēc Elektricity?</h2>
+                <div class="features">
+                    <div class="feature">
+                        <span>✔</span>
+                        <p>Sertificēti meistari</p>
+                    </div>
+                    <div class="feature">
+                        <span>✔</span>
+                        <p>Garantija darbiem</p>
+                    </div>
+                    <div class="feature">
+                        <span>✔</span>
+                        <p>Skaidras cenas</p>
+                    </div>
+                    <div class="feature">
+                        <span>✔</span>
+                        <p>Ātra izpilde</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="process" class="section">
+            <div class="container">
+                <h2>Kā mēs strādājam</h2>
+                <div class="steps">
+                    <div class="step">
+                        <span>1</span>
+                        <h3>Sazinies</h3>
+                        <p>Apraksti vajadzību telefoniski vai tiešsaistē.</p>
+                    </div>
+                    <div class="step">
+                        <span>2</span>
+                        <h3>Novērtējam</h3>
+                        <p>Precīzs darbu plāns un izmaksu tāme.</p>
+                    </div>
+                    <div class="step">
+                        <span>3</span>
+                        <h3>Vienojamies</h3>
+                        <p>Saskaņojam grafiku un piegādes.</p>
+                    </div>
+                    <div class="step">
+                        <span>4</span>
+                        <h3>Izpildām</h3>
+                        <p>Darbi ar garantiju un drošības standartu ievērošanu.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pieteikums" class="section section-blue">
+            <div class="container request-grid">
+                <div class="request-text">
+                    <h2>Vajag elektriķi?</h2>
+                    <p>
+                        Aizpildi pieteikumu, un mēs ar tevi sazināsimies 24h laikā.
+                    </p>
+                </div>
+                <form class="request-form" id="request-form">
+                    <label>
+                        Vārds
+                        <input type="text" name="name" placeholder="Jānis Bērziņš" required>
+                    </label>
+                    <label>
+                        Telefons
+                        <input type="tel" name="phone" placeholder="+371 12345678" required>
+                    </label>
+                    <label>
+                        Objekta tips
+                        <select name="object" required>
+                            <option value="">Izvēlies</option>
+                            <option value="Dzīvoklis">Dzīvoklis</option>
+                            <option value="Māja">Māja</option>
+                            <option value="Birojs">Birojs</option>
+                            <option value="Cits">Cits</option>
+                        </select>
+                    </label>
+                    <label>
+                        Apraksts
+                        <textarea name="message" rows="4" placeholder="Apraksti darbu apjomu"></textarea>
+                    </label>
+                    <button class="btn btn-primary" type="submit">Saņemt piedāvājumu</button>
+                    <p class="form-note">Bezmaksas konsultācija • Atbilde 24h laikā</p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer id="kontakti" class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <div class="logo">Elektricity <span class="logo-icon">⚡</span></div>
+                <p>Elektrības darbi visā Latvijā.</p>
+            </div>
+            <div>
+                <h4>Kontakti</h4>
+                <ul>
+                    <li><a href="tel:+37112345678">+371 123 45678</a></li>
+                    <li><a href="mailto:info@elektricity.lv">info@elektricity.lv</a></li>
+                    <li>Rīga, Latvija</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Darba laiks</h4>
+                <ul>
+                    <li>P-Pk: 9:00 – 18:00</li>
+                    <li>Brīvdienās: pēc vienošanās</li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
 </body>
 </html>
