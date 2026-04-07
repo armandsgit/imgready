@@ -1,0 +1,11 @@
+node_modules
+.next
+.env
+.env.local
+
+# AI models
+models/
+*.onnx
+
+# logs
+*.log
