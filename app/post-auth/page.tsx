@@ -55,6 +55,7 @@ export default async function PostAuthRedirectPage({ searchParams }: PostAuthRed
       data: {
         email,
         password: randomPassword,
+        role: isAdminEmail(email) ? 'admin' : 'user',
         emailVerified: true,
         referralCode: await generateUniqueReferralCode(),
         ...(referrerId ? { referredById: referrerId } : {}),
@@ -62,11 +63,12 @@ export default async function PostAuthRedirectPage({ searchParams }: PostAuthRed
         credits: getPlanCredits(provisionedPlan),
       },
     });
-  } else if (!existingUser.emailVerified) {
+  } else if (!existingUser.emailVerified || isAdminEmail(email)) {
     await prisma.user.update({
       where: { id: existingUser.id },
       data: {
         emailVerified: true,
+        ...(isAdminEmail(email) ? { role: 'admin' } : {}),
       },
     });
   }

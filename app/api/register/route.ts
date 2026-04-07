@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { isAdminEmail } from '@/lib/admin';
 import { issueVerificationToken } from '@/lib/emailVerification';
 import { getPlanCredits, isPlanId } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
@@ -81,6 +82,7 @@ export async function POST(request: Request) {
       data: {
         email,
         password: hashedPassword,
+        role: isAdminEmail(email) ? 'admin' : 'user',
         emailVerified: false,
         referralCode: await generateUniqueReferralCode(),
         ...(referrerId ? { referredById: referrerId } : {}),
