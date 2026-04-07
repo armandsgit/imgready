@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import io
+import os
 import time
+import urllib.request
 from pathlib import Path
 from threading import Lock
 
@@ -10,7 +12,9 @@ import onnxruntime as ort
 from PIL import Image, ImageCms, ImageOps
 
 
-MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "isnet.onnx"
+DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent / "models" / "isnet.onnx"
+MODEL_URL_ENV = "ISNET_MODEL_URL"
+MODEL_PATH_ENV = "ISNET_MODEL_PATH"
 TARGET_SIZE = 1024
 QUALITY_CONFIG = {
     "standard": {"inference_max_side": None, "export_size": 1200},
@@ -27,6 +31,31 @@ _session: ort.InferenceSession | None = None
 
 def log(message: str) -> None:
     print(f">>> IS-Net ONNX {message}")
+
+
+def get_model_path() -> Path:
+    configured_path = os.getenv(MODEL_PATH_ENV, "").strip()
+    if configured_path:
+        return Path(configured_path).expanduser().resolve()
+    return DEFAULT_MODEL_PATH
+
+
+def ensure_model_file(model_path: Path) -> Path:
+    if model_path.exists():
+        return model_path
+
+    model_url = os.getenv(MODEL_URL_ENV, "").strip()
+    if not model_url:
+        raise RuntimeError(f"Missing ONNX model at {model_path}")
+
+    model_path.parent.mkdir(parents=True, exist_ok=True)
+    log(f"downloading model from {MODEL_URL_ENV} to {model_path}")
+    urllib.request.urlretrieve(model_url, model_path.as_posix())
+
+    if not model_path.exists():
+        raise RuntimeError(f"Failed to download ONNX model to {model_path}")
+
+    return model_path
 
 
 def resolve_quality(quality: str) -> str:
@@ -57,11 +86,10 @@ def get_session() -> ort.InferenceSession:
         if _session is not None:
             return _session
 
-        if not MODEL_PATH.exists():
-            raise RuntimeError(f"Missing ONNX model at {MODEL_PATH}")
+        model_path = ensure_model_file(get_model_path())
 
-        _session = ort.InferenceSession(MODEL_PATH.as_posix(), providers=["CPUExecutionProvider"])
-        log("model loaded")
+        _session = ort.InferenceSession(model_path.as_posix(), providers=["CPUExecutionProvider"])
+        log(f"model loaded from {model_path}")
         return _session
 
 
