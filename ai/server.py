@@ -28,6 +28,7 @@ else:
 
 
 SERVER_STARTED_AT = time.time()
+BIREFNET_ENABLED = os.getenv("ENABLE_BIREFNET", "").strip().lower() in {"1", "true", "yes", "on"}
 
 app = FastAPI()
 app.add_middleware(
@@ -84,6 +85,11 @@ async def remove_bg(
 
     try:
         if selected_model == "birefnet":
+            if not BIREFNET_ENABLED:
+                raise RuntimeError(
+                    "BiRefNet is disabled in this environment. Use model=isnet or enable ENABLE_BIREFNET=true."
+                )
+
             if process_with_birefnet is None or BIREFNET_QUALITY_CONFIG is None:
                 raise RuntimeError(
                     "BiRefNet is unavailable in this environment. Use model=isnet or install optional BiRefNet dependencies."

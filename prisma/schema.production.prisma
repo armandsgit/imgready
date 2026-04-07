@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String                @id @default(cuid())
+  email                   String                @unique
+  password                String
+  role                    String                @default("user")
+  emailVerified           Boolean               @default(true)
+  referralCode            String?               @unique
+  referredById            String?
+  affiliateBalance        Int                   @default(0)
+  referralRewardGrantedAt DateTime?
+  plan                    String                @default("free")
+  scheduledPlan           String?
+  planChangeAt            DateTime?
+  credits                 Float                 @default(10)
+  stripeCustomerId        String?               @unique
+  stripeSubscriptionId    String?               @unique
+  stripePriceId           String?
+  subscriptionStatus      String?
+  cancelAtPeriodEnd       Boolean               @default(false)
+  planStartedAt           DateTime?
+  planExpiresAt           DateTime?
+  processedCount          Int                   @default(0)
+  createdAt               DateTime              @default(now())
+  referredBy              User?                 @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals               User[]                @relation("UserReferrals")
+  verificationTokens      EmailVerificationToken[]
+  creditTopUps            CreditTopUp[]
+  processingJobs          ProcessingJob[]
+  affiliateCommissions    AffiliateCommission[] @relation("ReferrerAffiliateCommissions")
+  referralPurchases       AffiliateCommission[] @relation("ReferredUserAffiliateCommissions")
+}
+
+model SitePage {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  content       String
+  lastUpdatedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProcessedStripeSession {
+  sessionId String   @id
+  kind      String
+  createdAt DateTime @default(now())
+}
+
+model CreditTopUp {
+  id        String   @id @default(cuid())
+  userId    String
+  sessionId String   @unique
+  credits   Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProcessingJob {
+  id           String   @id @default(cuid())
+  userId       String
+  userEmail    String
+  mode         String
+  imagesCount  Int      @default(1)
+  creditsUsed  Float
+  status       String
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+  durationMs   Int?
+  errorMessage String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, startedAt])
+  @@index([mode, startedAt])
+  @@index([userEmail, startedAt])
+}
+
+model AffiliateCommission {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referredUserId String
+  sourceType     String
+  sourceId       String
+  amountCents    Int
+  createdAt      DateTime @default(now())
+  referrer       User     @relation("ReferrerAffiliateCommissions", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUser   User     @relation("ReferredUserAffiliateCommissions", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceType, sourceId])
+}
