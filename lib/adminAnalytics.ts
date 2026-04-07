@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
-
-const SYSTEM_METRICS_API = 'http://127.0.0.1:8001/admin/system-metrics';
+import { getImageBackendEndpoint } from '@/lib/backendConfig';
 
 export interface AdminSystemMetrics {
   cpuPercent: number | null;
@@ -55,7 +54,7 @@ const JOB_RETENTION_DAYS = 30;
 
 async function getSystemMetrics(): Promise<AdminSystemMetrics> {
   try {
-    const response = await fetch(SYSTEM_METRICS_API, {
+    const response = await fetch(getImageBackendEndpoint('/admin/system-metrics'), {
       cache: 'no-store',
     });
 

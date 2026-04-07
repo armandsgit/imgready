@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { limiter } from '@/lib/concurrency';
 import { REMOVE_BACKGROUND_CREDIT_COST } from '@/lib/credits';
+import { getImageBackendEndpoint } from '@/lib/backendConfig';
 import { autoFrameProduct } from '@/lib/imageProcessing';
 import { hasUnlimitedCredits } from '@/lib/plans';
 import { createProcessingJob, markProcessingJobStatus } from '@/lib/processingJobs';
@@ -11,8 +12,6 @@ import type { MaskCleanupMode, ProcessingQuality } from '@/types';
 
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_SIZE = 10 * 1024 * 1024;
-const AI_API = 'http://127.0.0.1:8001/remove-bg';
-
 function parseExportSize(value: string | null) {
   if (!value || value === 'original') {
     return null;
@@ -109,7 +108,7 @@ export async function POST(request: Request) {
       aiFormData.append('model', model);
       aiFormData.append('quality', quality);
 
-      const response = await fetch(AI_API, {
+      const response = await fetch(getImageBackendEndpoint('/remove-bg'), {
         method: 'POST',
         body: aiFormData,
       });
