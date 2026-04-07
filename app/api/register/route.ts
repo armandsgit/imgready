@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { issueVerificationToken } from '@/lib/emailVerification';
 import { getPlanCredits, isPlanId } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';

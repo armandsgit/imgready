@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { cookies } from 'next/headers';
 import { authOptions } from '@/lib/auth';
 import { isAdminEmail } from '@/lib/admin';

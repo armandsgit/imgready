@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/prisma-generate.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node scripts/prisma-generate.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
-    "bcryptjs": "^3.0.3",
+    "bcrypt": "^6.0.0",
     "file-saver": "^2.0.5",
     "framer-motion": "^11.2.10",
     "jszip": "^3.10.1",
