@@ -1,0 +1,63 @@
+import './globals.css';
+import type { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import Navbar from '@/components/Navbar';
+import CookieBanner from '@/components/CookieBanner';
+import ReferralCapture from '@/components/ReferralCapture';
+import SiteFooter from '@/components/SiteFooter';
+import { authOptions } from '@/lib/auth';
+import { ensureUserPlanValidity } from '@/lib/billing';
+import { getBrandingSettings } from '@/lib/branding';
+import { prisma } from '@/lib/prisma';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'ImgReady',
+    template: '%s',
+  },
+  description: 'Create clean, listing-ready product images with white backgrounds in seconds.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+};
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const branding = await getBrandingSettings();
+  const session = await getServerSession(authOptions);
+  let initialAccount: { email: string; credits: number; plan: string } | null = null;
+
+  if (session?.user?.id) {
+    await ensureUserPlanValidity(session.user.id);
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        email: true,
+        credits: true,
+        plan: true,
+      },
+    });
+
+    if (user) {
+      initialAccount = {
+        email: user.email,
+        credits: user.credits,
+        plan: user.plan,
+      };
+    }
+  }
+
+  return (
+    <html lang="en">
+      <body>
+        <ReferralCapture />
+        <Navbar initialBranding={branding} initialAccount={initialAccount} />
+        {children}
+        <SiteFooter />
+        <CookieBanner />
+      </body>
+    </html>
+  );
+}

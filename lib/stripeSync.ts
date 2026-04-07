@@ -1,0 +1,163 @@
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { awardReferralReward } from '@/lib/referrals';
+import {
+  getBillingCredits,
+  getCheckoutSession,
+  getStripeSubscription,
+  isCreditPackage,
+  resolvePlanFromCheckoutSession,
+  resolveSubscriptionPeriodStart,
+  resolveSubscriptionPeriodEnd,
+  resolveSubscriptionPriceId,
+  resolveSubscriptionFromCheckoutSession,
+} from '@/lib/stripe';
+
+export async function syncCheckoutSessionForUser(sessionId: string, userId: string) {
+  const session = await getCheckoutSession(sessionId);
+
+  if (!session.client_reference_id || session.client_reference_id !== userId) {
+    throw new Error('This checkout session does not belong to the current user.');
+  }
+
+  const plan = resolvePlanFromCheckoutSession(session);
+  const subscription = resolveSubscriptionFromCheckoutSession(session);
+
+  if (!plan || !subscription?.id || !session.customer) {
+    throw new Error('Stripe checkout has not produced an active subscription yet.');
+  }
+
+  if (session.status !== 'complete') {
+    throw new Error('Stripe checkout is not complete yet.');
+  }
+
+  if (session.payment_status && session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
+    throw new Error('Stripe payment is not completed yet.');
+  }
+
+  const subscriptionPriceId = resolveSubscriptionPriceId(subscription);
+  let subscriptionPeriodStart = resolveSubscriptionPeriodStart(subscription);
+  let subscriptionPeriodEnd = resolveSubscriptionPeriodEnd(subscription);
+
+  if (!subscriptionPeriodStart || !subscriptionPeriodEnd) {
+    const freshSubscription = await getStripeSubscription(subscription.id);
+    subscriptionPeriodStart = freshSubscription.current_period_start ?? subscriptionPeriodStart ?? null;
+    subscriptionPeriodEnd = freshSubscription.current_period_end ?? null;
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      plan,
+      scheduledPlan: null,
+      planChangeAt: null,
+      credits: getBillingCredits(plan),
+      stripeCustomerId: session.customer,
+      stripeSubscriptionId: subscription.id,
+      stripePriceId: subscriptionPriceId,
+      subscriptionStatus: 'status' in subscription ? subscription.status ?? 'active' : 'active',
+      cancelAtPeriodEnd: 'cancel_at_period_end' in subscription ? Boolean(subscription.cancel_at_period_end) : false,
+      planStartedAt: subscriptionPeriodStart ? new Date(subscriptionPeriodStart * 1000) : null,
+      planExpiresAt: subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd * 1000) : null,
+    },
+  });
+
+  console.log('[referral] syncCheckoutSessionForUser completed', {
+    sessionId,
+    userId,
+    plan,
+  });
+
+  try {
+    await awardReferralReward({
+      referredUserId: userId,
+      sourceType: 'checkout_session_sync',
+      sourceId: sessionId,
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+      throw error;
+    }
+  }
+}
+
+export async function syncCreditTopUpSessionForUser(sessionId: string, userId: string) {
+  const session = await getCheckoutSession(sessionId);
+
+  if (!session.client_reference_id || session.client_reference_id !== userId) {
+    throw new Error('This checkout session does not belong to the current user.');
+  }
+
+  if (session.mode !== 'payment') {
+    throw new Error('This Stripe checkout session is not a credit purchase.');
+  }
+
+  if (session.status !== 'complete') {
+    throw new Error('Stripe checkout is not complete yet.');
+  }
+
+  if (session.payment_status && session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
+    throw new Error('Stripe payment is not completed yet.');
+  }
+
+  if (session.metadata?.purchaseType !== 'credit_topup') {
+    throw new Error('This Stripe checkout session is not a credit top-up.');
+  }
+
+  const purchasedCredits = Number(session.metadata.credits);
+
+  if (!isCreditPackage(purchasedCredits)) {
+    throw new Error('This Stripe checkout session does not contain a valid credit package.');
+  }
+
+  try {
+    await prisma.$transaction([
+      prisma.processedStripeSession.create({
+        data: {
+          sessionId,
+          kind: 'credit_topup',
+        },
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          credits: {
+            increment: purchasedCredits,
+          },
+          ...(session.customer ? { stripeCustomerId: session.customer } : {}),
+        },
+      }),
+      prisma.creditTopUp.create({
+        data: {
+          userId,
+          sessionId,
+          credits: purchasedCredits,
+        },
+      }),
+    ]);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return;
+    }
+
+    throw error;
+  }
+
+  console.log('[referral] syncCreditTopUpSessionForUser completed', {
+    sessionId,
+    userId,
+    purchasedCredits,
+  });
+
+  try {
+    await awardReferralReward({
+      referredUserId: userId,
+      sourceType: 'credit_topup_sync',
+      sourceId: sessionId,
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+      throw error;
+    }
+  }
+}

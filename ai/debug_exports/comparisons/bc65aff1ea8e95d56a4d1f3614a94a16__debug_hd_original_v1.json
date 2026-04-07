@@ -1,0 +1,36 @@
+{
+  "input_hash": "bc65aff1ea8e95d56a4d1f3614a94a16",
+  "pipeline_version": "debug_hd_original_v1",
+  "standard": {
+    "quality": "standard",
+    "original_size": "5712x4284",
+    "source_size": "4284x5712",
+    "source_max_side": "original",
+    "inference_input": "1024x1024",
+    "export_size": "1200x1200",
+    "post_mask_hash": "a06ea25acaf5723e903c3f3ccd9aacc3",
+    "final_export_hash": "39a05716a221f5ce628fa2838f792056"
+  },
+  "hd": {
+    "quality": "hd",
+    "original_size": "5712x4284",
+    "source_size": "4284x5712",
+    "source_max_side": "original",
+    "inference_input": "1024x1024",
+    "export_size": "1600x1600",
+    "post_mask_hash": "a06ea25acaf5723e903c3f3ccd9aacc3",
+    "final_export_hash": "9c0923eb1f27644415f575285d449418"
+  },
+  "original": {
+    "quality": "original",
+    "original_size": "5712x4284",
+    "source_size": "4284x5712",
+    "source_max_side": "original",
+    "inference_input": "1024x1024",
+    "export_size": "4284x5712",
+    "post_mask_hash": "a06ea25acaf5723e903c3f3ccd9aacc3",
+    "final_export_hash": "f2bb780e025a63ac3d6dd487287cb264"
+  },
+  "post_mask_identical_hd_vs_original": true,
+  "final_export_identical_hd_vs_original": false
+}
