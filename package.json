@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "file-saver": "^2.0.5",
     "framer-motion": "^11.2.10",
     "jszip": "^3.10.1",
@@ -22,7 +22,6 @@
     "react-dom": "18.3.1",
     "react-dropzone": "^14.2.3",
     "replicate": "^1.4.0",
-    "sharp": "^0.33.4",
     "stripe": "^20.4.1"
   },
   "devDependencies": {
