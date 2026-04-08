@@ -66,6 +66,11 @@ def resolve_quality(quality: str) -> str:
 def ensure_srgb_with_profile(image: Image.Image, icc_profile: bytes | None) -> Image.Image:
     normalized_image = ImageOps.exif_transpose(image)
 
+    # JPEGs commonly carry large EXIF/ICC payloads; on constrained hosts the
+    # profile conversion path is the main source of slowdowns and timeouts.
+    if normalized_image.format == "JPEG" or image.format == "JPEG":
+        return normalized_image.convert("RGBA")
+
     if not icc_profile:
         return normalized_image.convert("RGBA")
 
