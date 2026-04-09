@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { checkAuthRateLimit, getRequestIp } from '@/lib/authRateLimit';
 import { issueVerificationToken } from '@/lib/emailVerification';
 import { prisma } from '@/lib/prisma';
 
@@ -13,6 +14,19 @@ export async function POST(request: Request) {
 
     if (!email) {
       return NextResponse.json({ error: 'Please enter your email address.' }, { status: 400 });
+    }
+
+    const rateLimit = checkAuthRateLimit('resend-verification', `${email}:${getRequestIp(request)}`);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many verification email requests. Please wait a few minutes and try again.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.retryAfterSeconds),
+          },
+        }
+      );
     }
 
     const user = await prisma.user.findUnique({
