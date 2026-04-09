@@ -26,6 +26,10 @@ function getFriendlyAuthError(error: string | null | undefined) {
     return 'Access was denied during Google sign-in.';
   }
 
+  if (error === 'TOO_MANY_ATTEMPTS') {
+    return 'Too many login attempts. Please wait a few minutes and try again.';
+  }
+
   return 'Authentication failed. Please try again.';
 }
 
@@ -63,6 +67,8 @@ export default function LoginForm({
       setError(
         result?.error === 'EMAIL_NOT_VERIFIED'
           ? 'Please verify your email before continuing.'
+          : result?.error === 'TOO_MANY_ATTEMPTS'
+            ? 'Too many login attempts. Please wait a few minutes and try again.'
           : 'Invalid email or password.'
       );
       return;
