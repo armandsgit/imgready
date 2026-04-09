@@ -2,11 +2,15 @@ function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, '');
 }
 
-export function getImageBackendBaseUrl() {
-  const configuredUrl = process.env.IMAGE_BACKEND_URL?.trim();
+function getConfiguredBaseUrl(envName: 'IMAGE_BACKEND_URL' | 'REFINE_IMAGE_BACKEND_URL') {
+  const configuredUrl = process.env[envName]?.trim();
 
   if (configuredUrl) {
     return trimTrailingSlash(configuredUrl);
+  }
+
+  if (envName === 'REFINE_IMAGE_BACKEND_URL') {
+    return getImageBackendBaseUrl();
   }
 
   if (process.env.NODE_ENV !== 'production') {
@@ -16,7 +20,16 @@ export function getImageBackendBaseUrl() {
   throw new Error('IMAGE_BACKEND_URL is required in production.');
 }
 
-export function getImageBackendEndpoint(path: string) {
+export function getImageBackendBaseUrl() {
+  return getConfiguredBaseUrl('IMAGE_BACKEND_URL');
+}
+
+export function getRefineBackendBaseUrl() {
+  return getConfiguredBaseUrl('REFINE_IMAGE_BACKEND_URL');
+}
+
+export function getImageBackendEndpoint(path: string, model: 'isnet' | 'birefnet' = 'isnet') {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${getImageBackendBaseUrl()}${normalizedPath}`;
+  const baseUrl = model === 'birefnet' ? getRefineBackendBaseUrl() : getImageBackendBaseUrl();
+  return `${baseUrl}${normalizedPath}`;
 }
