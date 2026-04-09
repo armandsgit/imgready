@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import sharp from 'sharp';
 import { authOptions } from '@/lib/auth';
 import { limiter } from '@/lib/concurrency';
 import { REMOVE_BACKGROUND_CREDIT_COST } from '@/lib/credits';
 import { getImageBackendEndpoint } from '@/lib/backendConfig';
-import { autoFrameProduct } from '@/lib/imageProcessing';
 import { hasUnlimitedCredits } from '@/lib/plans';
 import { createProcessingJob, markProcessingJobStatus } from '@/lib/processingJobs';
 import { prisma } from '@/lib/prisma';
@@ -12,29 +12,70 @@ import type { MaskCleanupMode, ProcessingQuality } from '@/types';
 
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_SIZE = 10 * 1024 * 1024;
+const FALLBACK_MAX_SIDE = 1920;
 
-function parseExportSize(value: string | null) {
-  if (!value || value === 'original') {
-    return null;
+function shouldRetryWithCompressedInput(message: string) {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('413') ||
+    normalized.includes('request entity too large') ||
+    normalized.includes('payload too large') ||
+    normalized.includes('body exceeded') ||
+    normalized.includes('request error') ||
+    normalized.includes('bad gateway') ||
+    normalized.includes('upstream')
+  );
+}
+
+async function uploadToAiBackend(params: {
+  file: File | Blob;
+  fileName: string;
+  maskCleanup: MaskCleanupMode;
+  model: 'isnet' | 'birefnet';
+  quality: ProcessingQuality;
+}) {
+  const aiFormData = new FormData();
+  aiFormData.append('file', params.file, params.fileName);
+  aiFormData.append('mask_cleanup', params.maskCleanup);
+  aiFormData.append('model', params.model);
+  aiFormData.append('quality', params.quality);
+
+  const response = await fetch(getImageBackendEndpoint('/remove-bg', params.model), {
+    method: 'POST',
+    body: aiFormData,
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`AI server error: ${text}`);
   }
 
-  const match = value.match(/^(\d+)x(\d+)$/i);
-  if (!match) {
-    return null;
-  }
+  return {
+    buffer: await response.arrayBuffer(),
+    qualityMode: response.headers.get('X-Quality-Mode') ?? params.quality,
+    exportSize: response.headers.get('X-Export-Size') ?? null,
+    modelUsed: response.headers.get('X-Model-Used') ?? params.model,
+  };
+}
 
-  const width = Number(match[1]);
-  const height = Number(match[2]);
+async function createCompressedFallbackFile(file: File) {
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+  const outputBuffer = await sharp(inputBuffer, { failOn: 'none' })
+    .rotate()
+    .resize({
+      width: FALLBACK_MAX_SIDE,
+      height: FALLBACK_MAX_SIDE,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 90 })
+    .toBuffer();
 
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return null;
-  }
-
-  if (width !== height) {
-    return null;
-  }
-
-  return width;
+  const fallbackName = file.name.replace(/\.[^.]+$/, '') || 'upload';
+  return {
+    file: new Blob([new Uint8Array(outputBuffer)], { type: 'image/webp' }),
+    fileName: `${fallbackName}-compressed.webp`,
+  };
 }
 
 export async function POST(request: Request) {
@@ -103,28 +144,29 @@ export async function POST(request: Request) {
         await markProcessingJobStatus(processingJobId, 'processing');
       }
 
-      const aiFormData = new FormData();
-      aiFormData.append('file', file);
-      aiFormData.append('mask_cleanup', maskCleanup);
-      aiFormData.append('model', model);
-      aiFormData.append('quality', quality);
+      try {
+        return await uploadToAiBackend({
+          file,
+          fileName: file.name,
+          maskCleanup,
+          model,
+          quality,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unexpected AI upload error';
+        if (!shouldRetryWithCompressedInput(message)) {
+          throw error;
+        }
 
-      const response = await fetch(getImageBackendEndpoint('/remove-bg', model), {
-        method: 'POST',
-        body: aiFormData,
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`AI server error: ${text}`);
+        const compressed = await createCompressedFallbackFile(file);
+        return await uploadToAiBackend({
+          file: compressed.file,
+          fileName: compressed.fileName,
+          maskCleanup,
+          model,
+          quality,
+        });
       }
-
-      return {
-        buffer: await response.arrayBuffer(),
-        qualityMode: response.headers.get('X-Quality-Mode') ?? quality,
-        exportSize: response.headers.get('X-Export-Size') ?? null,
-        modelUsed: response.headers.get('X-Model-Used') ?? model,
-      };
     });
 
     if (!hasUnlimitedCredits(user.credits)) {
@@ -161,12 +203,7 @@ export async function POST(request: Request) {
       });
     }
 
-    let responseBuffer: Buffer = Buffer.from(new Uint8Array(processed.buffer));
-
-    const exportSize = parseExportSize(processed.exportSize);
-    if (exportSize) {
-      responseBuffer = await autoFrameProduct(responseBuffer, exportSize);
-    }
+    const responseBuffer = Buffer.from(new Uint8Array(processed.buffer));
 
     if (processingJobId) {
       await markProcessingJobStatus(processingJobId, 'done');
