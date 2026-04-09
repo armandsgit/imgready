@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { checkAuthRateLimit, getRequestIp } from '@/lib/authRateLimit';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -33,14 +34,20 @@ export const authOptions: NextAuthOptions = {
           type: 'password',
         },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         const rawEmail = typeof credentials?.email === 'string' ? credentials.email : '';
         const rawPassword = typeof credentials?.password === 'string' ? credentials.password : '';
         const email = rawEmail.trim().toLowerCase();
         const password = rawPassword.trim();
+        const rateLimitKey = `${email || 'unknown'}:${getRequestIp(req)}`;
 
         if (!email || !password) {
           return null;
+        }
+
+        const rateLimit = checkAuthRateLimit('login', rateLimitKey);
+        if (!rateLimit.allowed) {
+          throw new Error('TOO_MANY_ATTEMPTS');
         }
 
         const user = await prisma.user.findUnique({
