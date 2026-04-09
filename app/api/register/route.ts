@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { isAdminEmail } from '@/lib/admin';
+import { checkAuthRateLimit, getRequestIp } from '@/lib/authRateLimit';
 import { issueVerificationToken } from '@/lib/emailVerification';
 import { getPlanCredits, isPlanId } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
@@ -38,6 +39,19 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
+    }
+
+    const rateLimit = checkAuthRateLimit('register', `${email}:${getRequestIp(request)}`);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many registration attempts. Please wait a few minutes and try again.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.retryAfterSeconds),
+          },
+        }
+      );
     }
 
     if (!isPlanId(selectedPlan)) {
