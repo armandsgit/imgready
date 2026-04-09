@@ -13,7 +13,7 @@ function verificationEmailHtml(verificationUrl: string, expiresAt: Date) {
   return `
     <div style="font-family:Arial,sans-serif;background:#020617;color:#e5e7eb;padding:32px;">
       <div style="max-width:560px;margin:0 auto;background:#0b1220;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px;">
-        <p style="font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;margin:0 0 12px;">AI•TOOLS</p>
+        <p style="font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:#94a3b8;margin:0 0 12px;">ImgReady</p>
         <h1 style="font-size:28px;line-height:1.2;margin:0 0 12px;">Verify your email</h1>
         <p style="font-size:15px;line-height:1.7;color:#cbd5e1;margin:0 0 24px;">
           Confirm your email address to finish activating your account and start removing image backgrounds.
@@ -52,7 +52,7 @@ export async function sendVerificationEmail({
       body: JSON.stringify({
         from,
         to: email,
-        subject: 'Verify your email for AI•TOOLS',
+        subject: 'Verify your email for ImgReady',
         html: verificationEmailHtml(verificationUrl, expiresAt),
       }),
     });
