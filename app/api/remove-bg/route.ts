@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       aiFormData.append('model', model);
       aiFormData.append('quality', quality);
 
-      const response = await fetch(getImageBackendEndpoint('/remove-bg'), {
+      const response = await fetch(getImageBackendEndpoint('/remove-bg', model), {
         method: 'POST',
         body: aiFormData,
       });
