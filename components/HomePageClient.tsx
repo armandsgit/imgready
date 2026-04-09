@@ -34,6 +34,8 @@ const MAX_CONCURRENT_UPLOADS = 3;
 const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const ACCOUNT_REFRESH_EVENT = 'account:refresh';
 const WELCOME_TOAST_FLAG = 'showWelcomeToast';
+const UPLOAD_RETRY_MAX_SIDE = 1920;
+const UPLOAD_RETRY_QUALITY = 0.9;
 interface MeResponse {
   email: string;
   plan: string;
@@ -62,6 +64,67 @@ function createTaskId(file: File) {
 
 function createFileKey(file: File) {
   return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+function shouldRetryCompressedUpload(message: string) {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('function_payload_too_large') ||
+    normalized.includes('413') ||
+    normalized.includes('request entity too large') ||
+    normalized.includes('payload too large') ||
+    normalized.includes('body exceeded')
+  );
+}
+
+function loadBrowserImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Could not prepare image for upload retry.'));
+    };
+    image.src = objectUrl;
+  });
+}
+
+async function createCompressedUploadFile(file: File) {
+  const image = await loadBrowserImage(file);
+  const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
+  const scale = longestSide > UPLOAD_RETRY_MAX_SIDE ? UPLOAD_RETRY_MAX_SIDE / longestSide : 1;
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Could not prepare image for upload retry.');
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((nextBlob) => resolve(nextBlob), 'image/webp', UPLOAD_RETRY_QUALITY);
+  });
+
+  if (!blob) {
+    throw new Error('Could not prepare image for upload retry.');
+  }
+
+  const fallbackName = file.name.replace(/\.[^.]+$/, '') || 'upload';
+  return new File([blob], `${fallbackName}-compressed.webp`, {
+    type: 'image/webp',
+    lastModified: Date.now(),
+  });
 }
 
 function statusOrder(status: ImageTask['status']) {
@@ -613,12 +676,6 @@ export default function HomePageClient({ initialAccount = null }: HomePageClient
       return;
     }
 
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('maskCleanup', maskCleanup);
-    formData.append('model', model);
-    formData.append('quality', quality);
-
     try {
       updateItem(item.id, (current) => ({
         ...current,
@@ -629,14 +686,52 @@ export default function HomePageClient({ initialAccount = null }: HomePageClient
       console.log(`[remove-bg] selectedQuality sent to backend: ${quality}`);
       console.log(`[remove-bg] stored selectedQuality on item: ${item.selectedQuality ?? 'missing'}`);
 
-      const response = await fetch('/api/remove-bg', {
-        method: 'POST',
-        body: formData
-      });
+      const submitRemoveBg = async (uploadFile: File) => {
+        const formData = new FormData();
+        formData.append('image', uploadFile);
+        formData.append('maskCleanup', maskCleanup);
+        formData.append('model', model);
+        formData.append('quality', quality);
+
+        return await fetch('/api/remove-bg', {
+          method: 'POST',
+          body: formData,
+        });
+      };
+
+      let response = await submitRemoveBg(file);
 
       if (!response.ok) {
-        const payload = (await response.json()) as { error?: string };
-        throw new Error(payload.error || 'Failed to process image');
+        const rawError = await response.text();
+        let message = 'Failed to process image';
+
+        try {
+          const payload = JSON.parse(rawError) as { error?: string };
+          message = payload.error || message;
+        } catch {
+          message = rawError || message;
+        }
+
+        if (shouldRetryCompressedUpload(message)) {
+          const compressedFile = await createCompressedUploadFile(file);
+          response = await submitRemoveBg(compressedFile);
+        } else {
+          throw new Error(message);
+        }
+      }
+
+      if (!response.ok) {
+        const rawError = await response.text();
+        let message = 'Failed to process image';
+
+        try {
+          const payload = JSON.parse(rawError) as { error?: string };
+          message = payload.error || message;
+        } catch {
+          message = rawError || message;
+        }
+
+        throw new Error(message);
       }
 
       const rawBlob = await response.blob();
