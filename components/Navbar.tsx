@@ -91,10 +91,10 @@ export default function Navbar({ initialBranding, initialAccount }: NavbarProps)
   }
 
   return (
-    <header className="sticky top-0 z-50 h-[72px] bg-[rgba(11,11,13,0.62)] backdrop-blur-2xl">
-      <div className="mx-auto flex h-full max-w-[1180px] items-center justify-between px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-10 lg:gap-12">
-          <Link href="/" className="relative block h-8 w-[238px] shrink-0">
+    <header className="sticky top-0 z-50 h-[64px] bg-[rgba(11,11,13,0.62)] backdrop-blur-2xl sm:h-[72px]">
+      <div className="mx-auto flex h-full max-w-[1180px] items-center justify-between px-4 sm:px-6">
+        <div className="flex min-w-0 flex-1 items-center gap-4 sm:gap-10 lg:gap-12">
+          <Link href="/" className="relative block h-7 w-[156px] shrink-0 sm:h-8 sm:w-[238px]">
             <img
               src={branding.logo}
               alt={branding.logoAlt}
@@ -111,7 +111,7 @@ export default function Navbar({ initialBranding, initialAccount }: NavbarProps)
           </nav>
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-3 md:gap-4">
+        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3 md:gap-4">
           {loading ? (
             <div className="h-10" />
           ) : account ? (
@@ -141,22 +141,22 @@ export default function Navbar({ initialBranding, initialAccount }: NavbarProps)
                 type="button"
                 onClick={handleLogout}
                 disabled={loggingOut}
-                className="inline-flex items-center rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-[color:var(--text-secondary)] hover:border-[color:var(--border-color)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center rounded-xl border border-transparent px-2.5 py-2 text-sm font-medium text-[color:var(--text-secondary)] hover:border-[color:var(--border-color)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3"
               >
                 {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Logout'}
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/login"
-                className="px-2 py-2 text-sm font-medium text-[color:var(--text-secondary)] transition hover:text-[color:var(--text-primary)]"
+                className="px-1.5 py-2 text-sm font-medium text-[color:var(--text-secondary)] transition hover:text-[color:var(--text-primary)] sm:px-2"
               >
                 Log in
               </Link>
               <Link
                 href="/register"
-                className="theme-secondary-button inline-flex items-center rounded-xl px-4 py-2 text-sm font-medium"
+                className="theme-secondary-button inline-flex items-center rounded-xl px-3 py-2 text-sm font-medium sm:px-4"
               >
                 Sign up
               </Link>

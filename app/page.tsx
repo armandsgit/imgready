@@ -78,28 +78,28 @@ export default async function HomePage() {
   const primaryHeroLabel = isLoggedIn ? 'Upload images' : 'Start free';
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-6 pb-24 pt-[140px] text-[color:var(--text-primary)]">
+    <main className="relative min-h-screen overflow-hidden px-5 pb-20 pt-[92px] text-[color:var(--text-primary)] sm:px-6 sm:pb-24 sm:pt-[120px] lg:pt-[140px]">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_22%)]" />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-col gap-24 lg:gap-28">
-        <section className="grid items-center gap-16 py-4 xl:grid-cols-[minmax(0,1.08fr)_500px] xl:gap-20 xl:py-8">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1180px] flex-col gap-20 sm:gap-24 lg:gap-28">
+        <section className="grid items-center gap-12 py-2 sm:gap-16 sm:py-4 xl:grid-cols-[minmax(0,1.08fr)_500px] xl:gap-20 xl:py-8">
           <div className="max-w-[660px]">
-            <div className="inline-flex rounded-full border border-[color:var(--border-color)] bg-[rgba(28,28,30,0.52)] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-[color:var(--text-muted)] backdrop-blur-xl">
+            <div className="inline-flex rounded-full border border-[color:var(--border-color)] bg-[rgba(28,28,30,0.52)] px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-[color:var(--text-muted)] backdrop-blur-xl sm:text-[11px] sm:tracking-[0.24em]">
               Listing-ready images
             </div>
-            <h1 className="mt-6 text-[56px] font-semibold leading-[0.92] tracking-tight text-[color:var(--text-primary)] md:text-[74px]">
+            <h1 className="mt-5 max-w-[12ch] text-[34px] font-semibold leading-[0.94] tracking-[-0.04em] text-[color:var(--text-primary)] sm:mt-6 sm:max-w-none sm:text-[56px] sm:tracking-tight md:text-[74px]">
               {isLoggedIn ? 'Process your product images' : 'Make your product images look like Amazon listings in seconds'}
             </h1>
-            <p className="mt-12 max-w-[580px] text-[18px] leading-8 text-[color:var(--text-secondary)]">
+            <p className="mt-8 max-w-[580px] text-[17px] leading-7 text-[color:var(--text-secondary)] sm:mt-10 sm:text-[18px] sm:leading-8 lg:mt-12">
               {isLoggedIn
                 ? 'Upload images and get clean, optimized, listing-ready results.'
                 : 'Remove backgrounds, center products, and optimize images for fast-loading, clean product listings.'}
             </p>
 
-            <div className="mt-14 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex flex-col gap-3 sm:mt-12 sm:flex-row lg:mt-14">
               <Link
                 href={primaryHeroHref}
-                className="theme-accent-button inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium"
+                className="theme-accent-button inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium"
               >
                 {primaryHeroLabel}
                 <ArrowRight className="h-4 w-4" />
@@ -122,10 +122,10 @@ export default async function HomePage() {
               <p className="mt-4 text-sm text-[color:var(--text-muted)]">No setup required · Instant results</p>
             )}
 
-            <div className="mt-14 space-y-3 text-sm text-[color:var(--text-secondary)]">
+            <div className="mt-10 space-y-3 text-sm text-[color:var(--text-secondary)] sm:mt-12 lg:mt-14">
               {!isLoggedIn && (
                 <div className="space-y-2 text-[color:var(--text-muted)]">
-                  <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  <div className="flex flex-col gap-y-1.5 sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-2">
                     <div className="flex items-center gap-2">White background</div>
                     <div className="flex items-center gap-2">Centered products</div>
                     <div className="flex items-center gap-2">Web-optimized images</div>
@@ -150,18 +150,18 @@ export default async function HomePage() {
         </section>
 
         {!isLoggedIn && (
-          <section className="space-y-8">
+          <section className="space-y-6 sm:space-y-8">
             <div className="max-w-[760px]">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Benefits</p>
-              <h2 className="mt-3 text-3xl font-semibold text-[color:var(--text-primary)] md:text-4xl">
+              <h2 className="mt-3 max-w-[14ch] text-[32px] font-semibold leading-tight text-[color:var(--text-primary)] md:max-w-none md:text-4xl">
                 Everything you need to create clean product images for listings
               </h2>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
               {benefits.map((benefit) => (
-                <article key={benefit.title} className="panel rounded-[28px] p-6">
-                  <h3 className="text-xl font-semibold leading-tight text-[color:var(--text-primary)]">{benefit.title}</h3>
+                <article key={benefit.title} className="panel rounded-[24px] p-5 sm:rounded-[28px] sm:p-6">
+                  <h3 className="text-[22px] font-semibold leading-tight text-[color:var(--text-primary)] sm:text-xl">{benefit.title}</h3>
                   <p className="mt-3 text-sm leading-7 text-[color:var(--text-secondary)]">{benefit.description}</p>
                 </article>
               ))}
@@ -169,10 +169,10 @@ export default async function HomePage() {
           </section>
         )}
 
-        <section className="space-y-8">
+        <section className="space-y-6 sm:space-y-8">
           <div className="max-w-[720px]">
             <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">How it works</p>
-            <h2 className="mt-3 text-3xl font-semibold text-[color:var(--text-primary)] md:text-4xl">
+            <h2 className="mt-3 max-w-[14ch] text-[32px] font-semibold leading-tight text-[color:var(--text-primary)] md:max-w-none md:text-4xl">
               A simple workflow for listing-ready product images
             </h2>
           </div>
@@ -182,12 +182,12 @@ export default async function HomePage() {
               const Icon = step.icon;
 
               return (
-                <article key={step.title} className="panel rounded-[28px] p-7">
+                <article key={step.title} className="panel rounded-[24px] p-6 sm:rounded-[28px] sm:p-7">
                   <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Step {index + 1}</p>
                   <div className="mt-4 inline-flex rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] p-3 text-[color:var(--accent-primary)]">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-4 text-2xl font-semibold text-[color:var(--text-primary)]">{step.title}</h3>
+                  <h3 className="mt-4 text-[22px] font-semibold leading-tight text-[color:var(--text-primary)] sm:text-2xl">{step.title}</h3>
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-secondary)]">{step.description}</p>
                 </article>
               );
@@ -198,9 +198,9 @@ export default async function HomePage() {
         {!isLoggedIn && (
           <>
             <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-              <div className="panel rounded-[32px] p-8 md:p-10">
+              <div className="panel rounded-[28px] p-6 md:rounded-[32px] md:p-10">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Why ImgReady</p>
-                <h2 className="mt-3 text-3xl font-semibold text-[color:var(--text-primary)] md:text-4xl">
+                <h2 className="mt-3 max-w-[14ch] text-[32px] font-semibold leading-tight text-[color:var(--text-primary)] md:max-w-none md:text-4xl">
                   Built for sellers who need clean, consistent product images fast
                 </h2>
                 <p className="mt-4 max-w-[680px] text-sm leading-7 text-[color:var(--text-secondary)]">
@@ -208,9 +208,9 @@ export default async function HomePage() {
                 </p>
               </div>
 
-              <div className="panel rounded-[32px] p-8">
+              <div className="panel rounded-[28px] p-6 md:rounded-[32px] md:p-8">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Pricing preview</p>
-                <h3 className="mt-3 text-3xl font-semibold text-[color:var(--text-primary)]">Start free, scale as you need</h3>
+                <h3 className="mt-3 text-[30px] font-semibold leading-tight text-[color:var(--text-primary)] sm:text-3xl">Start free, scale as you need</h3>
                 <p className="mt-4 text-sm leading-7 text-[color:var(--text-secondary)]">1 image = 1 credit</p>
                 <p className="mt-2 text-sm font-medium text-[color:var(--accent-primary)]">Free plan starts without a credit card.</p>
 
@@ -235,11 +235,11 @@ export default async function HomePage() {
               </div>
             </section>
 
-            <section className="panel rounded-[36px] px-8 py-10 md:px-12 md:py-12">
+            <section className="panel rounded-[28px] px-6 py-8 md:rounded-[36px] md:px-12 md:py-12">
               <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
                 <div className="max-w-[720px]">
                   <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Get started</p>
-                  <h2 className="mt-3 text-3xl font-semibold text-[color:var(--text-primary)] md:text-4xl">
+                  <h2 className="mt-3 max-w-[14ch] text-[32px] font-semibold leading-tight text-[color:var(--text-primary)] md:max-w-none md:text-4xl">
                     Start creating listing-ready product images
                   </h2>
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-secondary)]">

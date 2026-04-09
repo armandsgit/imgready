@@ -52,8 +52,8 @@ function ConsentModal({
   const [analyticsEnabled, setAnalyticsEnabled] = useState(initialPreferences.analytics);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[75] flex items-end justify-end p-4">
-      <div className="pointer-events-auto w-full max-w-[520px] rounded-[24px] border border-[color:var(--border-color)] bg-[rgba(32,32,36,0.96)] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.46)] backdrop-blur-xl animate-[modal-enter_180ms_ease-out]">
+    <div className="pointer-events-none fixed inset-0 z-[75] flex items-end justify-center p-3 sm:justify-end sm:p-4">
+      <div className="pointer-events-auto w-full max-w-[520px] rounded-[22px] border border-[color:var(--border-color)] bg-[rgba(32,32,36,0.96)] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.46)] backdrop-blur-xl animate-[modal-enter_180ms_ease-out] sm:rounded-[24px] sm:p-5">
         <div className="space-y-5">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold text-[color:var(--text-primary)]">Cookies</h2>
@@ -204,8 +204,8 @@ export default function CookieBanner() {
       ) : null}
 
       {bannerVisible ? (
-        <div className="pointer-events-none fixed bottom-4 right-4 z-[70] w-full max-w-[600px] px-4 sm:px-0">
-          <div className="pointer-events-auto ml-auto w-full rounded-[24px] border border-[color:var(--border-color)] bg-[rgba(32,32,36,0.94)] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl animate-[modal-enter_180ms_ease-out]">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[70] px-3 pb-3 sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-full sm:max-w-[600px] sm:px-4 sm:pb-0">
+          <div className="pointer-events-auto ml-auto w-full rounded-[24px] border border-[color:var(--border-color)] bg-[rgba(32,32,36,0.94)] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-xl animate-[modal-enter_180ms_ease-out] sm:p-5">
             <div className="space-y-4">
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[color:var(--text-primary)]">Cookies</h2>
