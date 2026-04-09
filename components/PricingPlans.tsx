@@ -307,6 +307,9 @@ export default function PricingPlans() {
                 <p className="mt-2 text-sm text-[color:var(--text-muted)]">
                   {plan.price === '€0' ? 'Start free' : 'per month'}
                 </p>
+                {plan.id === 'free' && (
+                  <p className="mt-2 text-sm font-medium text-[color:var(--accent-primary)]">No credit card required</p>
+                )}
                 {PLAN_PRICE_PER_IMAGE[plan.id] && (
                   <p className="mt-2 text-sm font-medium text-[color:var(--accent-primary)]">{PLAN_PRICE_PER_IMAGE[plan.id]}</p>
                 )}
@@ -318,7 +321,7 @@ export default function PricingPlans() {
 
               <div className="mt-10 space-y-4">
                 {(plan.id === 'free'
-                  ? ['10 credits included', 'All features included', 'Max 3 images per upload']
+                  ? ['10 credits included', 'No credit card required', 'Max 3 images per upload']
                   : plan.id === 'starter'
                     ? ['200 credits per month', 'All features included', 'Max 20 images per upload']
                     : ['1000 credits per month', 'All features included', 'Max 50 images per upload']

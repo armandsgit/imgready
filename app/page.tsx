@@ -113,6 +113,11 @@ export default async function HomePage() {
                 </Link>
               )}
             </div>
+            {!isLoggedIn && (
+              <p className="mt-4 text-sm font-medium text-[color:var(--accent-primary)]">
+                10 free credits. No credit card required.
+              </p>
+            )}
             {isLoggedIn && (
               <p className="mt-4 text-sm text-[color:var(--text-muted)]">No setup required · Instant results</p>
             )}
@@ -207,11 +212,12 @@ export default async function HomePage() {
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Pricing preview</p>
                 <h3 className="mt-3 text-3xl font-semibold text-[color:var(--text-primary)]">Start free, scale as you need</h3>
                 <p className="mt-4 text-sm leading-7 text-[color:var(--text-secondary)]">1 image = 1 credit</p>
+                <p className="mt-2 text-sm font-medium text-[color:var(--accent-primary)]">Free plan starts without a credit card.</p>
 
                 <div className="mt-8 space-y-3">
                   <div className="rounded-[22px] border border-[color:var(--border-color)] bg-[color:var(--surface-contrast)] px-5 py-4">
                     <p className="text-sm font-medium text-[color:var(--text-primary)]">Free</p>
-                    <p className="mt-2 text-sm text-[color:var(--text-secondary)]">Get started with image credits for product photo processing.</p>
+                    <p className="mt-2 text-sm text-[color:var(--text-secondary)]">Get started with image credits for product photo processing, no card required.</p>
                   </div>
                   <div className="rounded-[22px] border border-[color:var(--border-color)] bg-[color:var(--surface-contrast)] px-5 py-4">
                     <p className="text-sm font-medium text-[color:var(--text-primary)]">Starter / Pro</p>
@@ -239,6 +245,7 @@ export default async function HomePage() {
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-secondary)]">
                     Remove backgrounds, center products, and get fast-loading, clean product images ready for your store.
                   </p>
+                  <p className="mt-2 text-sm font-medium text-[color:var(--accent-primary)]">Start free with 10 credits. No credit card required.</p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

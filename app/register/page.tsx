@@ -105,6 +105,7 @@ export default function RegisterPage() {
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Get started</p>
                 <h1 className="text-3xl font-semibold text-[color:var(--text-primary)]">Create an account</h1>
                 <p className="text-sm text-[color:var(--text-secondary)]">New accounts start on the Free plan automatically, and you can upgrade whenever you need more throughput.</p>
+                <p className="text-sm font-medium text-[color:var(--accent-primary)]">Free plan includes 10 credits. No credit card required.</p>
               </div>
 
               <div className="mt-8 space-y-4">
@@ -140,6 +141,9 @@ export default function RegisterPage() {
                             <div>
                               <p className="text-sm font-semibold text-[color:var(--text-primary)]">{option.name}</p>
                               <p className="mt-1 text-xs text-[color:var(--text-secondary)]">{option.features[0]}</p>
+                              {planId === 'free' && (
+                                <p className="mt-1 text-xs font-medium text-[color:var(--accent-primary)]">No credit card required</p>
+                              )}
                             </div>
                             <span className="text-sm font-medium text-[color:var(--text-primary)]">{option.monthlyPriceLabel}</span>
                           </div>
