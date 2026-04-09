@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
+import { headers } from 'next/headers';
 import Navbar from '@/components/Navbar';
 import CookieBanner from '@/components/CookieBanner';
 import ReferralCapture from '@/components/ReferralCapture';
@@ -24,6 +25,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const requestHeaders = await headers();
+  const isMaintenancePage = requestHeaders.get('x-imgready-maintenance-page') === '1';
+
+  if (isMaintenancePage) {
+    return (
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    );
+  }
+
   const branding = await getBrandingSettings();
   const session = await getServerSession(authOptions);
   let initialAccount: { email: string; credits: number; plan: string } | null = null;
