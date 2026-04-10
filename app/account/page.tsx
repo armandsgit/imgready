@@ -80,6 +80,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     subscriptionMessage = 'Current plan restored. Automatic renewal will continue normally.';
   }
 
+  if (searchParams?.subscription === 'updated') {
+    subscriptionMessage = 'Plan updated successfully.';
+  }
+
+  if (searchParams?.subscription === 'pending-upgrade') {
+    subscriptionMessage = 'Plan change requested. Your account updates as soon as Stripe confirms the upgrade.';
+  }
+
+  if (searchParams?.subscription === 'scheduled-downgrade') {
+    subscriptionMessage = 'Plan change scheduled for your next billing cycle.';
+  }
+
   if (searchParams?.credits === 'success') {
     if (searchParams.session_id) {
       try {

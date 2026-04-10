@@ -27,10 +27,30 @@ interface MeResponse {
   planExpiresAt?: string | null;
 }
 
+interface ChangePlanResponse {
+  error?: string;
+  url?: string;
+  mode?: 'checkout' | 'pending_upgrade' | 'scheduled_downgrade';
+}
+
 interface PlanSwitchModalState {
   currentPlan: string;
   targetPlan: 'free' | 'starter' | 'pro';
   billingEndDate?: string | null;
+}
+
+function getExistingSubscriberCta(currentPlan: string, targetPlan: 'starter' | 'pro') {
+  const normalizedCurrent = currentPlan.trim().toLowerCase();
+
+  if (normalizedCurrent === 'starter' && targetPlan === 'pro') {
+    return 'Upgrade to Pro';
+  }
+
+  if (normalizedCurrent === 'pro' && targetPlan === 'starter') {
+    return 'Switch to Starter';
+  }
+
+  return targetPlan === 'starter' ? 'Get Starter' : 'Get Pro';
 }
 
 function formatExpiryDate(value: string | null | undefined) {
@@ -101,7 +121,7 @@ export default function PricingPlans() {
 
     try {
       const response = await fetch('/api/stripe/customer-portal', { method: 'POST' });
-      const payload = (await response.json()) as { error?: string; url?: string };
+      const payload = (await response.json()) as ChangePlanResponse;
 
       if (!response.ok || !payload.url) {
         throw new Error(payload.error || 'Could not open billing portal.');
@@ -125,7 +145,7 @@ export default function PricingPlans() {
         body: JSON.stringify({ plan }),
       });
 
-      const payload = (await response.json()) as { error?: string; url?: string };
+      const payload = (await response.json()) as ChangePlanResponse;
 
       if (!response.ok) {
         throw new Error(payload.error || 'Could not change your plan.');
@@ -137,7 +157,17 @@ export default function PricingPlans() {
       }
 
       await loadAccount();
-      window.location.href = '/account';
+      if (payload.mode === 'scheduled_downgrade') {
+        window.location.href = '/account?subscription=scheduled-downgrade';
+        return;
+      }
+
+      if (payload.mode === 'pending_upgrade') {
+        window.location.href = '/account?subscription=pending-upgrade';
+        return;
+      }
+
+      window.location.href = '/account?subscription=updated';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not change your plan.');
     } finally {
@@ -395,7 +425,7 @@ export default function PricingPlans() {
                         Opening checkout...
                       </span>
                     ) : account.stripeSubscriptionId ? (
-                      plan.id === 'starter' ? 'Upgrade to Starter' : 'Get Pro'
+                      getExistingSubscriberCta(account.plan, paidPlanId)
                     ) : (
                       getGuestPlanCta(plan.id)
                     )}
