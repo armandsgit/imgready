@@ -171,6 +171,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     user.planExpiresAt ? Math.ceil((user.planExpiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
   const isCancelling = Boolean(planId !== 'free' && user.cancelAtPeriodEnd && !planExpired);
   const hasScheduledDowngrade = Boolean(planId !== 'free' && scheduledPlanId && scheduledChangeDate);
+  const hasPendingUpgrade = Boolean(user.subscriptionStatus === 'pending_upgrade' && scheduledPlanId);
   const subscriptionStatus =
     planId === 'free'
       ? {
@@ -182,6 +183,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           dateHelper: 'Free plans do not expire.',
           notice: null,
         }
+      : user.subscriptionStatus === 'past_due'
+        ? {
+            label: 'Payment issue',
+            className: 'border-[color:var(--status-warning-border)] bg-[color:var(--status-warning-bg)] text-[color:var(--status-warning-text)]',
+            helper: 'Stripe could not complete your latest payment or upgrade charge.',
+            dateLabel: 'Current renewal date',
+            dateValue: user.planExpiresAt ? formatDate(user.planExpiresAt) : 'Not available',
+            dateHelper: 'Update your payment method in billing and retry if needed.',
+            notice: 'Your current plan stays active until Stripe confirms the payment.',
+          }
       : planExpired || user.subscriptionStatus === 'expired'
         ? {
             label: 'Expired',
@@ -367,10 +378,15 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                       <p>
                         Changes on:{' '}
                         <span className="font-medium text-[color:var(--text-primary)]">
-                          {formatDate(scheduledChangeDate)}
+                          {hasPendingUpgrade ? 'After Stripe confirms payment' : formatDate(scheduledChangeDate)}
                         </span>
                       </p>
                     </div>
+                    {hasPendingUpgrade && (
+                      <p className="mt-3 text-sm leading-7 text-[color:var(--text-secondary)]">
+                        If the upgrade charge fails, keep your current plan and update your card in billing before trying again.
+                      </p>
+                    )}
                     {hasScheduledDowngrade && (
                       <div className="mt-4">
                         <UndoDowngradeButton
