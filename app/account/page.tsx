@@ -230,7 +230,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             };
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-6 py-14 md:py-20">
+    <main className="relative min-h-screen overflow-hidden px-6 py-12 md:py-16">
       <AccountCreditsRefresh
         enabled={searchParams?.credits === 'success' || searchParams?.checkout === 'success'}
         initialAccount={{
@@ -241,7 +241,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_22%)]" />
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">Account</p>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -297,48 +297,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </div>
         )}
 
-        <section className="grid grid-cols-1 gap-6">
+        <section className="grid grid-cols-1 gap-5">
           <AccountCreditTopUp currentCredits={creditBreakdown.totalCredits} />
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <div className="panel rounded-[30px] p-6 md:p-7">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Profile</p>
-                <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">Account details</h2>
-              </div>
-              <div className="rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] p-3 text-[color:var(--accent-primary)]">
-                <Mail className="h-5 w-5" />
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4">
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Email</p>
-                <p className="mt-2 text-base font-medium text-[color:var(--text-primary)]">{user.email}</p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Verification</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <CheckCircle2 className={`h-4 w-4 ${user.emailVerified ? 'text-[color:var(--status-success-text)]' : 'text-[color:var(--status-warning-text)]'}`} />
-                    <p className="text-base font-medium text-[color:var(--text-primary)]">
-                      {user.emailVerified ? 'Verified' : 'Pending'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Created</p>
-                  <p className="mt-2 text-base font-medium text-[color:var(--text-primary)]">{formatDate(user.createdAt)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="panel rounded-[30px] p-6 md:p-7">
+        <section className="grid grid-cols-1 gap-5">
+          <div className="panel h-fit rounded-[26px] p-5 md:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Plan</p>
@@ -349,8 +313,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+            <div className="mt-5 grid auto-rows-fr gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3 xl:col-span-2">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Current plan</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">{getPlanName(user.plan)}</p>
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{planConfig.monthlyPriceLabel}</p>
@@ -364,7 +328,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   <p className="mt-2 text-sm text-[color:var(--status-warning-text)]">{subscriptionStatus.notice}</p>
                 )}
                 {scheduledPlanId && scheduledChangeDate && (
-                  <div className="mt-4 rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-strong)] px-4 py-3">
+                  <div className="mt-4 rounded-[18px] border border-[color:var(--border-color)] bg-[color:var(--surface-strong)] px-4 py-3">
                     <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--text-muted)]">Scheduled change</p>
                     <div className="mt-3 space-y-2 text-sm text-[color:var(--text-secondary)]">
                       <p>
@@ -399,7 +363,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 )}
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Credits remaining</p>
                 <p className={`mt-2 text-xl font-semibold ${lowCredits ? 'text-[color:var(--status-warning-text)]' : 'text-[color:var(--text-primary)]'}`}>
                   {hasUnlimitedCredits(creditBreakdown.totalCredits) ? '∞' : formatCredits(creditBreakdown.totalCredits)}
@@ -407,7 +371,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Subscription and top-up credits combined.</p>
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Monthly usage</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">
                   {usageThisMonth} / {monthlyLimit}
@@ -415,7 +379,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Usage is based on your current plan allowance.</p>
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Subscription credits left</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">
                   {hasUnlimitedCredits(creditBreakdown.totalCredits) ? '∞' : formatCredits(creditBreakdown.planCreditsRemaining)}
@@ -423,7 +387,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">These reset with your next billing cycle.</p>
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Extra credits</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">
                   {hasUnlimitedCredits(creditBreakdown.totalCredits) ? '0' : formatCredits(creditBreakdown.topUpCreditsRemaining)}
@@ -431,7 +395,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Purchased and bonus credits stay on your account.</p>
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">
                   {planId === 'free' ? 'Plan access' : 'Billing cycle started'}
                 </p>
@@ -443,14 +407,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 </p>
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="flex h-full flex-col rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">{subscriptionStatus.dateLabel}</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">{subscriptionStatus.dateValue}</p>
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{subscriptionStatus.dateHelper}</p>
               </div>
             </div>
 
-            <div className="mt-6 rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+            <div className="mt-4 rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
               <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">How credits work</p>
               <div className="mt-3 space-y-2 text-sm leading-7 text-[color:var(--text-secondary)]">
                 <p>
@@ -464,8 +428,44 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_minmax(0,0.65fr)]">
-          <div className="panel rounded-[30px] p-6 md:p-7">
+        <section className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
+          <div className="panel flex h-full flex-col rounded-[26px] p-5 md:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Profile</p>
+                <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">Account details</h2>
+              </div>
+              <div className="rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] p-3 text-[color:var(--accent-primary)]">
+                <Mail className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+              <div className="rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Email</p>
+                <p className="mt-2 text-base font-medium text-[color:var(--text-primary)]">{user.email}</p>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Verification</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <CheckCircle2 className={`h-4 w-4 ${user.emailVerified ? 'text-[color:var(--status-success-text)]' : 'text-[color:var(--status-warning-text)]'}`} />
+                    <p className="text-base font-medium text-[color:var(--text-primary)]">
+                      {user.emailVerified ? 'Verified' : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Created</p>
+                  <p className="mt-2 text-base font-medium text-[color:var(--text-primary)]">{formatDate(user.createdAt)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="panel flex h-full flex-col rounded-[26px] p-5 md:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Usage</p>
@@ -476,23 +476,23 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+            <div className="mt-5 grid gap-3">
+              <div className="rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Images processed</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">{usageThisMonth}</p>
               </div>
 
-              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <div className="rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Monthly limit</p>
                 <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">{monthlyLimit}</p>
               </div>
             </div>
           </div>
 
-          <div className="panel rounded-[30px] p-6 md:p-7">
+          <div className="panel flex h-full flex-col rounded-[26px] p-5 md:p-6">
             <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Actions</p>
             <h2 className="mt-1 text-2xl font-semibold text-[color:var(--text-primary)]">Manage account</h2>
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-6 flex flex-1 flex-col justify-end gap-3">
               <Link
                 href="/pricing"
                 className="theme-accent-button inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium"
@@ -509,8 +509,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_minmax(0,0.65fr)]">
-          <div className="panel rounded-[30px] p-6 md:p-7">
+        <section className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="panel flex h-full flex-col rounded-[26px] p-5 md:p-6">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Invite friends</p>
               <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">Referral link</h2>
@@ -519,7 +519,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               </p>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="mt-6 grid flex-1 items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
               <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Referral link</p>
                 <p className="mt-2 break-all text-sm font-medium text-[color:var(--text-primary)]">
@@ -534,10 +534,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             </div>
           </div>
 
-          <div className="panel rounded-[30px] p-6 md:p-7">
+          <div className="panel flex h-full flex-col rounded-[26px] p-5 md:p-6">
             <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Referral rewards</p>
             <h2 className="mt-1 text-2xl font-semibold text-[color:var(--text-primary)]">Bonus credits earned</h2>
-            <div className="mt-6 rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+            <div className="mt-6 flex flex-1 flex-col justify-center rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
               <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Referral rewards</p>
               <p className="mt-2 text-2xl font-semibold text-[color:var(--text-primary)]">
                 +{formatCredits(user.affiliateBalance)} credits
@@ -549,8 +549,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_minmax(0,0.65fr)]">
-          <div className="panel rounded-[30px] p-6 md:p-7">
+        <section className="grid grid-cols-1 gap-5">
+          <div className="panel h-fit rounded-[26px] p-5 md:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Billing</p>
@@ -587,8 +587,6 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               )}
             </div>
           </div>
-
-          <div />
         </section>
 
       </div>
