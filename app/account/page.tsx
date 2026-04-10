@@ -421,6 +421,18 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{subscriptionStatus.dateHelper}</p>
               </div>
             </div>
+
+            <div className="mt-6 rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">How credits work</p>
+              <div className="mt-3 space-y-2 text-sm leading-7 text-[color:var(--text-secondary)]">
+                <p>
+                  Subscription credits reset at the start of each billing cycle based on your plan allowance.
+                </p>
+                <p>
+                  Purchased and bonus credits stay on your account and are not removed when your subscription renews.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 

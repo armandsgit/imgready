@@ -28,6 +28,8 @@ Users are responsible for their accounts and login credentials.
 - Optimize only = 0.5 credit per image
 - Credits are non-transferable
 - Credits do not expire unless stated otherwise in future updates
+- subscription credits reset at the start of each billing cycle
+- purchased or bonus credits remain on the account until used
 
 ## Subscriptions
 - billed monthly
