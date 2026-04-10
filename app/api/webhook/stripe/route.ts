@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
+import { getRenewedCreditTotal, isSameBillingCycle } from '@/lib/creditBalances';
 import { prisma } from '@/lib/prisma';
 import { awardReferralReward } from '@/lib/referrals';
 import {
-  getBillingCredits,
   getPlanFromStripePriceId,
   getStripeSubscription,
   isBillingPlanId,
@@ -88,8 +88,12 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
     select: {
       id: true,
       plan: true,
+      credits: true,
+      createdAt: true,
       scheduledPlan: true,
       planChangeAt: true,
+      planStartedAt: true,
+      planExpiresAt: true,
     },
   });
 
@@ -114,6 +118,14 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
     user.scheduledPlan !== plan ||
     isImmediateUpgrade ||
     scheduledPlanReached;
+  const sameBillingCycle = user.plan === plan && isSameBillingCycle(user.planStartedAt, periodStartDate);
+  const shouldResetCredits = shouldApplyStripePlanImmediately && !sameBillingCycle;
+  const renewedCredits = shouldResetCredits
+    ? await getRenewedCreditTotal({
+        user,
+        nextPlan: plan,
+      })
+    : user.credits;
 
   await prisma.user.update({
     where: { id: user.id },
@@ -121,7 +133,7 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
       ...(shouldApplyStripePlanImmediately
         ? {
             plan,
-            credits: getBillingCredits(plan),
+            credits: renewedCredits,
             scheduledPlan: null,
             planChangeAt: null,
           }
@@ -143,25 +155,37 @@ async function downgradeUser(where: { stripeCustomerId?: string; stripeSubscript
 
   const user = await prisma.user.findFirst({
     where,
-    select: { id: true, credits: true },
+    select: {
+      id: true,
+      plan: true,
+      credits: true,
+      createdAt: true,
+      planStartedAt: true,
+      planExpiresAt: true,
+    },
   });
 
   if (!user) {
     return;
   }
 
+  const renewedCredits = await getRenewedCreditTotal({
+    user,
+    nextPlan: 'free',
+  });
+
   await prisma.user.update({
     where: { id: user.id },
     data: {
       plan: 'free',
-      credits: Math.min(user.credits, getBillingCredits('free')),
+      credits: renewedCredits,
       scheduledPlan: null,
       planChangeAt: null,
       stripeSubscriptionId: null,
       stripePriceId: null,
       subscriptionStatus: 'expired',
       cancelAtPeriodEnd: false,
-      planStartedAt: null,
+      planStartedAt: new Date(),
       planExpiresAt: null,
     },
   });

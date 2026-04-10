@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { getBillingCredits } from '@/lib/stripe';
+import { getRenewedCreditTotal } from '@/lib/creditBalances';
 
 export async function ensureUserPlanValidity(userId: string) {
   const user = await prisma.user.findUnique({
@@ -8,6 +8,7 @@ export async function ensureUserPlanValidity(userId: string) {
       id: true,
       plan: true,
       credits: true,
+      createdAt: true,
       stripeSubscriptionId: true,
       stripePriceId: true,
       subscriptionStatus: true,
@@ -29,18 +30,23 @@ export async function ensureUserPlanValidity(userId: string) {
     return user;
   }
 
+  const renewedCredits = await getRenewedCreditTotal({
+    user,
+    nextPlan: 'free',
+  });
+
   return prisma.user.update({
     where: { id: userId },
     data: {
       plan: 'free',
-      credits: getBillingCredits('free'),
+      credits: renewedCredits,
       scheduledPlan: null,
       planChangeAt: null,
       stripeSubscriptionId: null,
       stripePriceId: null,
       subscriptionStatus: 'expired',
       cancelAtPeriodEnd: false,
-      planStartedAt: null,
+      planStartedAt: new Date(),
       planExpiresAt: null,
     },
     select: {

@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { getRenewedCreditTotal, isSameBillingCycle } from '@/lib/creditBalances';
 import { awardReferralReward } from '@/lib/referrals';
 import {
-  getBillingCredits,
   getCheckoutSession,
   getStripeSubscription,
   isCreditPackage,
@@ -45,20 +45,47 @@ export async function syncCheckoutSessionForUser(sessionId: string, userId: stri
     subscriptionPeriodEnd = freshSubscription.current_period_end ?? null;
   }
 
+  const nextPlanStartedAt = subscriptionPeriodStart ? new Date(subscriptionPeriodStart * 1000) : null;
+  const nextPlanExpiresAt = subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd * 1000) : null;
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      plan: true,
+      credits: true,
+      createdAt: true,
+      planStartedAt: true,
+      planExpiresAt: true,
+    },
+  });
+
+  if (!currentUser) {
+    throw new Error('User not found.');
+  }
+
+  const shouldResetCredits =
+    currentUser.plan !== plan || !isSameBillingCycle(currentUser.planStartedAt, nextPlanStartedAt);
+  const renewedCredits = shouldResetCredits
+    ? await getRenewedCreditTotal({
+        user: currentUser,
+        nextPlan: plan,
+      })
+    : currentUser.credits;
+
   await prisma.user.update({
     where: { id: userId },
     data: {
       plan,
       scheduledPlan: null,
       planChangeAt: null,
-      credits: getBillingCredits(plan),
+      credits: renewedCredits,
       stripeCustomerId: session.customer,
       stripeSubscriptionId: subscription.id,
       stripePriceId: subscriptionPriceId,
       subscriptionStatus: 'status' in subscription ? subscription.status ?? 'active' : 'active',
       cancelAtPeriodEnd: 'cancel_at_period_end' in subscription ? Boolean(subscription.cancel_at_period_end) : false,
-      planStartedAt: subscriptionPeriodStart ? new Date(subscriptionPeriodStart * 1000) : null,
-      planExpiresAt: subscriptionPeriodEnd ? new Date(subscriptionPeriodEnd * 1000) : null,
+      planStartedAt: nextPlanStartedAt,
+      planExpiresAt: nextPlanExpiresAt,
     },
   });
 

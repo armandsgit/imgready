@@ -103,6 +103,7 @@ export async function POST(request: Request) {
         // New accounts always start on Free. Paid plans are only granted after Stripe confirmation.
         plan: provisionedPlan,
         credits: getPlanCredits(provisionedPlan),
+        planStartedAt: new Date(),
       },
       select: {
         id: true,

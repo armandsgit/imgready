@@ -61,6 +61,7 @@ export default async function PostAuthRedirectPage({ searchParams }: PostAuthRed
         ...(referrerId ? { referredById: referrerId } : {}),
         plan: provisionedPlan,
         credits: getPlanCredits(provisionedPlan),
+        planStartedAt: new Date(),
       },
     });
   } else if (!existingUser.emailVerified || isAdminEmail(email)) {

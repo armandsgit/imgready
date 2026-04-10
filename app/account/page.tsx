@@ -13,6 +13,7 @@ import ResumeSubscriptionButton from '@/components/ResumeSubscriptionButton';
 import UndoDowngradeButton from '@/components/UndoDowngradeButton';
 import { authOptions } from '@/lib/auth';
 import { ensureUserPlanValidity } from '@/lib/billing';
+import { getCreditBreakdownForUser } from '@/lib/creditBalances';
 import { PLAN_CONFIG, formatCredits, getPlanName, hasUnlimitedCredits, isPlanId } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { buildReferralLink, ensureUserReferralCode } from '@/lib/referrals';
@@ -97,6 +98,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: {
+      id: true,
       email: true,
       emailVerified: true,
       createdAt: true,
@@ -130,6 +132,15 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     redirect('/login');
   }
 
+  const creditBreakdown = await getCreditBreakdownForUser({
+    id: session.user.id,
+    plan: user.plan,
+    credits: user.credits,
+    createdAt: user.createdAt,
+    planStartedAt: user.planStartedAt,
+    planExpiresAt: user.planExpiresAt,
+  });
+
   const referralCode = user.referralCode ?? (await ensureUserReferralCode(session.user.id));
   const referralLink = referralCode ? buildReferralLink(getBaseUrl(), referralCode) : null;
 
@@ -137,12 +148,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const scheduledPlanId =
     user.scheduledPlan && isPlanId(user.scheduledPlan) ? user.scheduledPlan : null;
   const planConfig = PLAN_CONFIG[planId];
-  const lowCredits = !hasUnlimitedCredits(user.credits) && user.credits <= 5;
+  const lowCredits = !hasUnlimitedCredits(creditBreakdown.totalCredits) && creditBreakdown.totalCredits <= 5;
   const planExpired = Boolean(user.planExpiresAt && user.planExpiresAt.getTime() < Date.now());
-  const monthlyLimit = hasUnlimitedCredits(user.credits) ? 'Custom volume' : `${planConfig.credits} images`;
-  const usageThisMonth = hasUnlimitedCredits(user.credits)
+  const monthlyLimit = hasUnlimitedCredits(creditBreakdown.totalCredits) ? 'Custom volume' : `${planConfig.credits} images`;
+  const usageThisMonth = hasUnlimitedCredits(creditBreakdown.totalCredits)
     ? `${user.processedCount}`
-    : `${Math.max(planConfig.credits - Math.max(user.credits, 0), 0)}`;
+    : formatCredits(creditBreakdown.periodCreditsUsed);
   const scheduledChangeDate = user.planChangeAt ?? user.planExpiresAt;
   const remainingDays =
     user.planExpiresAt ? Math.ceil((user.planExpiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
@@ -243,7 +254,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               <p className={`text-sm ${planExpired ? 'text-[color:var(--status-error-text)]' : 'text-[color:var(--status-warning-text)]'}`}>
                 {planExpired
                   ? 'Your plan has expired. Upgrade to continue processing images.'
-                  : `Only ${formatCredits(user.credits)} ${user.credits === 1 ? 'credit' : 'credits'} left.`}
+                  : `Only ${formatCredits(creditBreakdown.totalCredits)} ${creditBreakdown.totalCredits === 1 ? 'credit' : 'credits'} left.`}
               </p>
             </div>
             <Link
@@ -264,7 +275,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         )}
 
         <section className="grid grid-cols-1 gap-6">
-          <AccountCreditTopUp currentCredits={user.credits} />
+          <AccountCreditTopUp currentCredits={creditBreakdown.totalCredits} />
         </section>
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -363,9 +374,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
               <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Credits remaining</p>
                 <p className={`mt-2 text-xl font-semibold ${lowCredits ? 'text-[color:var(--status-warning-text)]' : 'text-[color:var(--text-primary)]'}`}>
-                  {hasUnlimitedCredits(user.credits) ? '∞' : formatCredits(user.credits)}
+                  {hasUnlimitedCredits(creditBreakdown.totalCredits) ? '∞' : formatCredits(creditBreakdown.totalCredits)}
                 </p>
-                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">1 image = 1 credit</p>
+                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Subscription and top-up credits combined.</p>
               </div>
 
               <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
@@ -374,6 +385,22 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   {usageThisMonth} / {monthlyLimit}
                 </p>
                 <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Usage is based on your current plan allowance.</p>
+              </div>
+
+              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Subscription credits left</p>
+                <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">
+                  {hasUnlimitedCredits(creditBreakdown.totalCredits) ? '∞' : formatCredits(creditBreakdown.planCreditsRemaining)}
+                </p>
+                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">These reset with your next billing cycle.</p>
+              </div>
+
+              <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Extra credits</p>
+                <p className="mt-2 text-xl font-semibold text-[color:var(--text-primary)]">
+                  {hasUnlimitedCredits(creditBreakdown.totalCredits) ? '0' : formatCredits(creditBreakdown.topUpCreditsRemaining)}
+                </p>
+                <p className="mt-1 text-sm text-[color:var(--text-secondary)]">Purchased and bonus credits stay on your account.</p>
               </div>
 
               <div className="rounded-[24px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-5 py-4">
