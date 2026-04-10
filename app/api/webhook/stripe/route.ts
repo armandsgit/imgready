@@ -28,6 +28,14 @@ interface StripeCheckoutSessionObject {
   } | null;
 }
 
+interface StripeWebhookEvent {
+  id?: string | null;
+  type: string;
+  data: {
+    object: unknown;
+  };
+}
+
 interface StripeInvoiceLine {
   price?: {
     id?: string | null;
@@ -64,6 +72,24 @@ interface StripeSubscriptionObject {
       } | null;
     }>;
   } | null;
+}
+
+async function markProcessedStripeId(id: string, kind: string) {
+  try {
+    await prisma.processedStripeSession.create({
+      data: {
+        sessionId: id,
+        kind,
+      },
+    });
+    return true;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return false;
+    }
+
+    throw error;
+  }
 }
 
 async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
@@ -191,10 +217,45 @@ async function downgradeUser(where: { stripeCustomerId?: string; stripeSubscript
   });
 }
 
+async function markPaymentFailed(where: { stripeCustomerId?: string; stripeSubscriptionId?: string }) {
+  if (!where.stripeCustomerId && !where.stripeSubscriptionId) {
+    return;
+  }
+
+  const user = await prisma.user.findFirst({
+    where,
+    select: {
+      id: true,
+    },
+  });
+
+  if (!user) {
+    return;
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      subscriptionStatus: 'past_due',
+    },
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
-    const event = verifyStripeWebhookSignature(rawBody, request.headers.get('stripe-signature'));
+    const event = verifyStripeWebhookSignature(
+      rawBody,
+      request.headers.get('stripe-signature')
+    ) as StripeWebhookEvent;
+
+    if (event.id) {
+      const shouldProcessEvent = await markProcessedStripeId(event.id, `event:${event.type}`);
+
+      if (!shouldProcessEvent) {
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+    }
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -296,6 +357,14 @@ export async function POST(request: Request) {
           subscription: invoice.subscription,
         });
 
+        if (invoice.id) {
+          const shouldProcessInvoice = await markProcessedStripeId(invoice.id, 'invoice_paid');
+
+          if (!shouldProcessInvoice) {
+            break;
+          }
+        }
+
         if (invoice.customer && invoice.subscription) {
           const subscription = await getStripeSubscription(invoice.subscription);
           await syncSubscriptionToUser(subscription);
@@ -367,7 +436,7 @@ export async function POST(request: Request) {
         const invoice = event.data.object as StripeInvoiceObject;
 
         if (invoice.subscription || invoice.customer) {
-          await downgradeUser({
+          await markPaymentFailed({
             stripeSubscriptionId: invoice.subscription ?? undefined,
             stripeCustomerId: invoice.customer ?? undefined,
           });
