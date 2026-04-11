@@ -264,7 +264,7 @@ export async function createBillingPortalSession(params: {
 }) {
   const body = new URLSearchParams();
   body.set('customer', params.customerId);
-  body.set('return_url', `${params.origin}/account`);
+  body.set('return_url', `${params.origin}/account?subscription=billing-return`);
 
   return stripeRequest<StripeBillingPortalSession>('/billing_portal/sessions', body);
 }

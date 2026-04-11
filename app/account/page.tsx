@@ -88,6 +88,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     subscriptionMessage = 'Plan updated successfully.';
   }
 
+  if (searchParams?.subscription === 'billing-return') {
+    subscriptionMessage = 'Billing changes synced from Stripe.';
+  }
+
   if (searchParams?.subscription === 'pending-upgrade') {
     subscriptionMessage = 'Plan change requested. Your account updates as soon as Stripe confirms the upgrade.';
   }
@@ -193,7 +197,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       } else if (!wasCancelling && user?.cancelAtPeriodEnd) {
         subscriptionMessage = subscriptionMessage ?? 'Subscription cancellation scheduled. Your plan remains active until the period ends.';
       }
-    } catch {
+    } catch (error) {
+      console.error('[account] stripe subscription sync failed', error);
       // Keep the current local state visible if Stripe has not finalized the subscription update yet.
     }
   }

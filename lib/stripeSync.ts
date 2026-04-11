@@ -19,6 +19,7 @@ export async function syncStripeSubscriptionForUser(subscriptionId: string, user
   const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
   const plan = getPlanFromStripePriceId(priceId);
   const subscriptionStatus = subscription.status ?? 'active';
+  const nextSubscriptionStatus = subscription.cancel_at_period_end ? 'cancelling' : subscriptionStatus;
 
   if (!plan || !subscription.customer) {
     throw new Error('Stripe subscription does not match a configured ImgReady plan.');
@@ -80,7 +81,7 @@ export async function syncStripeSubscriptionForUser(subscriptionId: string, user
       stripeCustomerId: subscription.customer,
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
-      subscriptionStatus,
+      subscriptionStatus: nextSubscriptionStatus,
       cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
       planStartedAt: nextPlanStartedAt,
       planExpiresAt: nextPlanExpiresAt,
