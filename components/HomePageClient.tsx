@@ -501,8 +501,9 @@ export default function HomePageClient({ initialAccount = null }: HomePageClient
     setProcessingMode(nextMode);
 
     if (nextMode === 'optimize-only') {
-      exportBackgroundRef.current = 'white';
-      setExportBackground('white');
+      const optimizeBackground = downloadFormatRef.current === 'png' ? 'transparent' : 'white';
+      exportBackgroundRef.current = optimizeBackground;
+      setExportBackground(optimizeBackground);
     }
   }
 
@@ -621,7 +622,7 @@ export default function HomePageClient({ initialAccount = null }: HomePageClient
           fileName: item.fileName,
           format: item.downloadFormat ?? downloadFormatRef.current,
           preset: item.downloadQualityPreset ?? compressionPresetRef.current,
-          background: 'white',
+          background: (item.downloadFormat ?? downloadFormatRef.current) === 'png' ? 'transparent' : 'white',
           processingQuality: quality,
           outputSuffix: 'optimized',
           squareCanvas: true,
@@ -1017,7 +1018,12 @@ export default function HomePageClient({ initialAccount = null }: HomePageClient
             fileName: item.fileName,
             format: item.downloadFormat ?? downloadFormatRef.current,
             preset: item.downloadQualityPreset ?? compressionPresetRef.current,
-            background: item.processingMode === 'optimize-only' ? 'white' : item.downloadBackground ?? exportBackgroundRef.current,
+            background:
+              item.processingMode === 'optimize-only'
+                ? (item.downloadFormat ?? downloadFormatRef.current) === 'png'
+                  ? 'transparent'
+                  : 'white'
+                : item.downloadBackground ?? exportBackgroundRef.current,
             processingQuality: item.processedQuality ?? item.selectedQuality ?? processingQuality,
             outputSuffix: item.processingMode === 'optimize-only' ? 'optimized' : 'background-removed',
             squareCanvas: item.processingMode === 'optimize-only',

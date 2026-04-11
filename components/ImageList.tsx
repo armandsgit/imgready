@@ -305,7 +305,7 @@ function ListItemRow({
                 widthMode="auto"
                 downloadFormat={item.downloadFormat}
                 compressionPreset={item.downloadQualityPreset}
-                exportBackground={isOptimizeOnly ? 'white' : item.downloadBackground}
+                exportBackground={isOptimizeOnly && item.downloadFormat === 'png' ? 'transparent' : item.downloadBackground}
                 outputSuffix={isOptimizeOnly ? 'optimized' : 'background-removed'}
                 squareCanvas={isOptimizeOnly}
                 fitMode={isOptimizeOnly ? item.optimizeFitMode ?? 'cover' : 'contain'}
@@ -481,7 +481,7 @@ function PreviewModalContent({
               widthMode="auto"
               downloadFormat={item.downloadFormat}
               compressionPreset={item.downloadQualityPreset}
-              exportBackground={isOptimizeOnly ? 'white' : item.downloadBackground}
+              exportBackground={isOptimizeOnly && item.downloadFormat === 'png' ? 'transparent' : item.downloadBackground}
               outputSuffix={isOptimizeOnly ? 'optimized' : 'background-removed'}
               squareCanvas={isOptimizeOnly}
               fitMode={isOptimizeOnly ? item.optimizeFitMode ?? 'cover' : 'contain'}

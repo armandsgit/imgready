@@ -294,7 +294,7 @@ export default function ImageCard({ item, onRetry, onRefine }: ImageCardProps) {
               hideMeta
               downloadFormat={item.downloadFormat}
               compressionPreset={item.downloadQualityPreset}
-              exportBackground={isOptimizeOnly ? 'white' : item.downloadBackground}
+              exportBackground={isOptimizeOnly && item.downloadFormat === 'png' ? 'transparent' : item.downloadBackground}
               outputSuffix={isOptimizeOnly ? 'optimized' : 'background-removed'}
               squareCanvas={isOptimizeOnly}
               fitMode={isOptimizeOnly ? item.optimizeFitMode ?? 'cover' : 'contain'}

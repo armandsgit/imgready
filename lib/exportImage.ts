@@ -309,9 +309,9 @@ export async function createOptimizedExport(params: {
   }
   if (params.background === 'white' || params.format !== 'png') {
     context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, width, height);
+    context.fillRect(0, 0, canvas.width, canvas.height);
   } else {
-    context.clearRect(0, 0, width, height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
   }
   context.filter = GLOBAL_EXPORT_CORRECTION_FILTER;
 
