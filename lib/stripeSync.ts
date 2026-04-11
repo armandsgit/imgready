@@ -93,7 +93,12 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     },
   });
 
-  return { plan };
+  return {
+    plan,
+    subscriptionId: subscription.id,
+    status: nextSubscriptionStatus,
+    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+  };
 }
 
 export async function syncStripeSubscriptionForUser(subscriptionId: string, userId: string) {
@@ -106,6 +111,10 @@ export async function syncLatestStripeSubscriptionForCustomer(customerId: string
   const candidates = (subscriptions.data ?? [])
     .filter((subscription) => ['active', 'trialing'].includes(subscription.status ?? 'active'))
     .sort((left, right) => {
+      if (left.cancel_at_period_end !== right.cancel_at_period_end) {
+        return left.cancel_at_period_end ? -1 : 1;
+      }
+
       const leftTime = left.created ?? left.start_date ?? 0;
       const rightTime = right.created ?? right.start_date ?? 0;
       return rightTime - leftTime;

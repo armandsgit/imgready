@@ -163,11 +163,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     const wasCancelling = user.cancelAtPeriodEnd;
 
     try {
+      let subscriptionSyncResult: Awaited<ReturnType<typeof syncStripeSubscriptionForUser>> | null = null;
+
       if (user.stripeCustomerId) {
-        await syncLatestStripeSubscriptionForCustomer(user.stripeCustomerId, session.user.id);
+        subscriptionSyncResult = await syncLatestStripeSubscriptionForCustomer(user.stripeCustomerId, session.user.id);
       } else if (user.stripeSubscriptionId) {
-        await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
+        subscriptionSyncResult = await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
       }
+
+      console.log('[account] stripe subscription synced', subscriptionSyncResult);
+
       user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: {
@@ -208,6 +213,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       }
     } catch (error) {
       console.error('[account] stripe subscription sync failed', error);
+      subscriptionMessage =
+        subscriptionMessage ??
+        `Could not sync Stripe subscription status: ${error instanceof Error ? error.message : 'Unknown error'}`;
       // Keep the current local state visible if Stripe has not finalized the subscription update yet.
     }
   }
