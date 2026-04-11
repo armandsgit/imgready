@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ensureUserPlanValidity } from '@/lib/billing';
 import { prisma } from '@/lib/prisma';
-import { setStripeSubscriptionCancelAtPeriodEnd } from '@/lib/stripe';
+import { getStripeSubscriptionCancellationUnix, setStripeSubscriptionCancelAtPeriodEnd } from '@/lib/stripe';
 
 export const runtime = 'nodejs';
 
@@ -23,6 +23,9 @@ export async function POST() {
         id: true,
         plan: true,
         cancelAtPeriodEnd: true,
+        planExpiresAt: true,
+        scheduledPlan: true,
+        planChangeAt: true,
         stripeSubscriptionId: true,
       },
     });
@@ -40,6 +43,16 @@ export async function POST() {
     }
 
     if (user.cancelAtPeriodEnd) {
+      const planChangeAt = user.planChangeAt ?? user.planExpiresAt;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          subscriptionStatus: 'cancelling',
+          scheduledPlan: 'free',
+          planChangeAt,
+        },
+      });
+
       return NextResponse.json({ success: true, mode: 'cancel_at_period_end' });
     }
 
@@ -49,18 +62,20 @@ export async function POST() {
     });
 
     const periodEnd =
+      getStripeSubscriptionCancellationUnix(updatedSubscription) ??
       updatedSubscription.items?.data?.[0]?.current_period_end ??
       updatedSubscription.current_period_end ??
       null;
+    const planChangeAt = periodEnd ? new Date(periodEnd * 1000) : null;
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
         subscriptionStatus: 'cancelling',
-        cancelAtPeriodEnd: Boolean(updatedSubscription.cancel_at_period_end),
-        planExpiresAt: periodEnd ? new Date(periodEnd * 1000) : null,
-        scheduledPlan: null,
-        planChangeAt: null,
+        cancelAtPeriodEnd: Boolean(updatedSubscription.cancel_at_period_end || updatedSubscription.cancel_at),
+        planExpiresAt: planChangeAt,
+        scheduledPlan: 'free',
+        planChangeAt,
       },
     });
 

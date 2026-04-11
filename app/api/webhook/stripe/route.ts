@@ -144,14 +144,16 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
   const isImmediateUpgrade =
     user.plan === 'free' ||
     (isBillingPlanId(user.plan) && isBillingPlanId(plan) && isBillingUpgrade(user.plan, plan));
+  const isScheduledFreeCancellation =
+    user.scheduledPlan === 'free' && cancellationScheduled && user.plan === plan;
   const shouldApplyStripePlanImmediately =
     !user.scheduledPlan ||
     !user.planChangeAt ||
-    user.scheduledPlan !== plan ||
+    (user.scheduledPlan !== plan && !isScheduledFreeCancellation) ||
     isImmediateUpgrade ||
     scheduledPlanReached;
   const sameBillingCycle = user.plan === plan && isSameBillingCycle(user.planStartedAt, periodStartDate);
-  const shouldResetCredits = shouldApplyStripePlanImmediately && !sameBillingCycle;
+  const shouldResetCredits = shouldApplyStripePlanImmediately && !isScheduledFreeCancellation && !sameBillingCycle;
   const renewedCredits = shouldResetCredits
     ? await getRenewedCreditTotal({
         user,

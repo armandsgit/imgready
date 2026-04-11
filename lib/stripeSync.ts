@@ -126,7 +126,10 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     isImmediateUpgrade ||
     scheduledPlanReached;
   const sameBillingCycle = currentUser.plan === plan && isSameBillingCycle(currentUser.planStartedAt, nextPlanStartedAt);
-  const shouldResetCredits = shouldApplyStripePlanImmediately && !sameBillingCycle;
+  const isScheduledFreeCancellation =
+    currentUser.scheduledPlan === 'free' && cancellationScheduled && currentUser.plan === plan;
+  const shouldApplySyncedPlan = shouldApplyStripePlanImmediately && !isScheduledFreeCancellation;
+  const shouldResetCredits = shouldApplySyncedPlan && !sameBillingCycle;
   const renewedCredits = shouldResetCredits
     ? await getRenewedCreditTotal({
         user: currentUser,
@@ -137,7 +140,7 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
   await prisma.user.update({
     where: { id: userId },
     data: {
-      ...(shouldApplyStripePlanImmediately
+      ...(shouldApplySyncedPlan
         ? {
             plan,
             scheduledPlan: null,
