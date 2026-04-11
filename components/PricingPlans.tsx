@@ -15,7 +15,7 @@ const PLAN_DESCRIPTION_COPY: Record<PlanId, string> = {
 };
 const PLAN_PRICE_PER_IMAGE: Partial<Record<PlanId, string>> = {
   starter: '~€0.045/image',
-  pro: '~€0.019/image',
+  pro: '~€0.031/image',
 };
 
 interface MeResponse {
@@ -344,7 +344,7 @@ export default function PricingPlans() {
                   <p className="mt-2 text-sm font-medium text-[color:var(--accent-primary)]">{PLAN_PRICE_PER_IMAGE[plan.id]}</p>
                 )}
                 {plan.id === 'pro' && (
-                  <p className="mt-2 text-sm text-[color:var(--status-success-text)]">Save 2x per image vs Starter</p>
+                  <p className="mt-2 text-sm text-[color:var(--status-success-text)]">Best value for higher monthly volume</p>
                 )}
                 <p className="mt-4 text-sm leading-7 text-[color:var(--text-secondary)]">{PLAN_DESCRIPTION_COPY[plan.id]}</p>
               </div>
@@ -354,7 +354,7 @@ export default function PricingPlans() {
                   ? ['10 credits included', 'No credit card required', 'Max 3 images per upload']
                   : plan.id === 'starter'
                     ? ['200 credits per month', 'All features included', 'Max 20 images per upload']
-                    : ['1000 credits per month', 'All features included', 'Max 50 images per upload']
+                    : ['600 credits per month', 'All features included', 'Max 50 images per upload']
                 ).map((feature) => (
                   <div key={feature} className="flex items-center gap-3 text-sm text-[color:var(--text-secondary)]">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-[color:var(--accent-primary)]" />
