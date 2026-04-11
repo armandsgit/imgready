@@ -7,11 +7,8 @@ import { prisma } from '@/lib/prisma';
 
 interface UpdateUserBody {
   credits?: number;
-  plan?: string;
   emailVerified?: boolean;
 }
-
-const ALLOWED_PLANS = new Set(['free', 'starter', 'pro']);
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -30,10 +27,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       typeof body.credits === 'number' && Number.isFinite(body.credits)
         ? Math.max(0, Math.trunc(body.credits))
         : null;
-    const plan = typeof body.plan === 'string' ? body.plan.trim().toLowerCase() : null;
     const emailVerified = typeof body.emailVerified === 'boolean' ? body.emailVerified : null;
 
-    if (credits === null || emailVerified === null || !plan || !ALLOWED_PLANS.has(plan)) {
+    if (credits === null || emailVerified === null) {
       return NextResponse.json({ error: 'Invalid user update payload.' }, { status: 400 });
     }
 
@@ -43,7 +39,6 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       },
       data: {
         credits,
-        plan,
         emailVerified,
       },
       select: {

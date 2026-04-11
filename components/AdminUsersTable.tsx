@@ -23,7 +23,6 @@ const PROTECTED_ADMIN_EMAILS = new Set(['armands.visam@gmail.com']);
 
 interface DraftState {
   credits: number;
-  plan: AdminPlan;
   emailVerified: boolean;
 }
 
@@ -142,7 +141,6 @@ export default function AdminUsersTable({ initialUsers }: AdminUsersTableProps) 
         user.id,
         {
           credits: user.credits,
-          plan: user.plan as AdminPlan,
           emailVerified: user.emailVerified,
         },
       ])
@@ -171,14 +169,13 @@ export default function AdminUsersTable({ initialUsers }: AdminUsersTableProps) 
     : null;
 
   const selectedDraft = selectedUser
-    ? drafts[selectedUser.id] ?? { credits: selectedUser.credits, plan: selectedUser.plan as AdminPlan }
+    ? drafts[selectedUser.id] ?? { credits: selectedUser.credits, emailVerified: selectedUser.emailVerified }
     : null;
 
   const selectedSubscriptionMeta = selectedUser ? getSubscriptionMeta(selectedUser) : null;
 
   const hasUnsavedChanges = selectedUser
     ? selectedDraft?.credits !== selectedUser.credits ||
-      selectedDraft?.plan !== selectedUser.plan ||
       selectedDraft?.emailVerified !== selectedUser.emailVerified
     : false;
 
@@ -244,7 +241,6 @@ export default function AdminUsersTable({ initialUsers }: AdminUsersTableProps) 
         },
         body: JSON.stringify({
           credits: draft.credits,
-          plan: draft.plan,
           emailVerified: draft.emailVerified,
         }),
       });
@@ -260,7 +256,6 @@ export default function AdminUsersTable({ initialUsers }: AdminUsersTableProps) 
         ...current,
         [userId]: {
           credits: payload.user!.credits,
-          plan: payload.user!.plan as AdminPlan,
           emailVerified: payload.user!.emailVerified,
         },
       }));
@@ -454,7 +449,7 @@ export default function AdminUsersTable({ initialUsers }: AdminUsersTableProps) 
                 <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--text-muted)]">Edit user</p>
                 <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">{selectedUser.email}</h2>
                 <p className="max-w-2xl text-sm text-[color:var(--text-secondary)]">
-                  Adjust credits, plan limits, verification, and subscription details without leaving the dashboard.
+                  Adjust credits and verification without changing Stripe-owned subscription plans.
                 </p>
               </div>
               <button
@@ -501,16 +496,16 @@ export default function AdminUsersTable({ initialUsers }: AdminUsersTableProps) 
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    <label className="text-sm font-medium text-[color:var(--text-primary)]">Plan</label>
-                    <select
-                      value={selectedDraft?.plan ?? (selectedUser.plan as AdminPlan)}
-                      onChange={(event) => updateDraft(selectedUser.id, { plan: event.target.value as AdminPlan })}
-                      className="w-full rounded-xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-3 py-3 text-sm text-[color:var(--text-primary)] outline-none transition focus:border-[color:var(--accent-primary)]"
-                    >
-                      <option value="free">free</option>
-                      <option value="starter">starter</option>
-                      <option value="pro">pro</option>
-                    </select>
+                    <p className="text-sm font-medium text-[color:var(--text-primary)]">Plan</p>
+                    <div className="rounded-[20px] border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--text-muted)]">Stripe-managed</p>
+                      <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
+                        Current plan: <span className="font-medium text-[color:var(--text-primary)]">{formatAdminPlan(selectedUser.plan, selectedUser.credits, selectedUser.role)}</span>
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-[color:var(--text-secondary)]">
+                        Change paid plans only through Stripe checkout, customer portal, or webhook sync to avoid billing mismatches.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
