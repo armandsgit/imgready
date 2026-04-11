@@ -149,7 +149,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     redirect('/login');
   }
 
-  if (user.subscriptionStatus === 'pending_upgrade' && user.stripeSubscriptionId) {
+  if (user.stripeSubscriptionId && user.plan !== 'free') {
+    const wasPendingUpgrade = user.subscriptionStatus === 'pending_upgrade';
+    const wasCancelling = user.cancelAtPeriodEnd;
+
     try {
       await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
       user = await prisma.user.findUnique({
@@ -185,9 +188,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           },
         },
       });
-      subscriptionMessage = subscriptionMessage ?? 'Plan updated successfully. Your credits are ready.';
+      if (wasPendingUpgrade) {
+        subscriptionMessage = subscriptionMessage ?? 'Plan updated successfully. Your credits are ready.';
+      } else if (!wasCancelling && user?.cancelAtPeriodEnd) {
+        subscriptionMessage = subscriptionMessage ?? 'Subscription cancellation scheduled. Your plan remains active until the period ends.';
+      }
     } catch {
-      // Keep the pending state visible if Stripe has not finalized the plan change yet.
+      // Keep the current local state visible if Stripe has not finalized the subscription update yet.
     }
   }
 
