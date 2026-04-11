@@ -43,6 +43,7 @@ interface StripeSubscription {
   id: string;
   status?: string | null;
   cancel_at_period_end?: boolean | null;
+  created?: number | null;
   schedule?: string | { id?: string | null } | null;
   start_date?: number | null;
   customer?: string | null;
@@ -64,6 +65,10 @@ interface StripeSubscriptionItem {
   price?: {
     id?: string | null;
   } | null;
+}
+
+interface StripeSubscriptionList {
+  data?: StripeSubscription[];
 }
 
 type CheckoutSessionWithExpandedSubscription = StripeCheckoutSession & {
@@ -284,6 +289,16 @@ export async function getStripeSubscription(subscriptionId: string) {
   query.append('expand[]', 'schedule');
 
   return stripeGet<StripeSubscription>(`/subscriptions/${subscriptionId}`, query);
+}
+
+export async function getStripeSubscriptionsForCustomer(customerId: string) {
+  const query = new URLSearchParams();
+  query.set('customer', customerId);
+  query.set('status', 'all');
+  query.set('limit', '10');
+  query.append('expand[]', 'data.schedule');
+
+  return stripeGet<StripeSubscriptionList>('/subscriptions', query);
 }
 
 export async function updateStripeSubscriptionPlan(params: {

@@ -17,7 +17,12 @@ import { getCreditBreakdownForUser } from '@/lib/creditBalances';
 import { PLAN_CONFIG, formatCredits, getPlanName, hasUnlimitedCredits, isPlanId } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { buildReferralLink, ensureUserReferralCode } from '@/lib/referrals';
-import { syncCheckoutSessionForUser, syncCreditTopUpSessionForUser, syncStripeSubscriptionForUser } from '@/lib/stripeSync';
+import {
+  syncCheckoutSessionForUser,
+  syncCreditTopUpSessionForUser,
+  syncLatestStripeSubscriptionForCustomer,
+  syncStripeSubscriptionForUser,
+} from '@/lib/stripeSync';
 
 export const metadata: Metadata = {
   title: 'Account — ImgReady',
@@ -153,12 +158,16 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     redirect('/login');
   }
 
-  if (user.stripeSubscriptionId && user.plan !== 'free') {
+  if ((user.stripeSubscriptionId || user.stripeCustomerId) && user.plan !== 'free') {
     const wasPendingUpgrade = user.subscriptionStatus === 'pending_upgrade';
     const wasCancelling = user.cancelAtPeriodEnd;
 
     try {
-      await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
+      if (user.stripeCustomerId) {
+        await syncLatestStripeSubscriptionForCustomer(user.stripeCustomerId, session.user.id);
+      } else if (user.stripeSubscriptionId) {
+        await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
+      }
       user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: {

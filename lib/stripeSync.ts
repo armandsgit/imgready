@@ -6,6 +6,7 @@ import {
   getCheckoutSession,
   getPlanFromStripePriceId,
   getStripeSubscription,
+  getStripeSubscriptionsForCustomer,
   isCreditPackage,
   resolvePlanFromCheckoutSession,
   resolveSubscriptionPeriodStart,
@@ -14,8 +15,7 @@ import {
   resolveSubscriptionFromCheckoutSession,
 } from '@/lib/stripe';
 
-export async function syncStripeSubscriptionForUser(subscriptionId: string, userId: string) {
-  const subscription = await getStripeSubscription(subscriptionId);
+async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnType<typeof getStripeSubscription>>, userId: string) {
   const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
   const plan = getPlanFromStripePriceId(priceId);
   const subscriptionStatus = subscription.status ?? 'active';
@@ -89,6 +89,30 @@ export async function syncStripeSubscriptionForUser(subscriptionId: string, user
   });
 
   return { plan };
+}
+
+export async function syncStripeSubscriptionForUser(subscriptionId: string, userId: string) {
+  const subscription = await getStripeSubscription(subscriptionId);
+  return syncStripeSubscriptionRecordForUser(subscription, userId);
+}
+
+export async function syncLatestStripeSubscriptionForCustomer(customerId: string, userId: string) {
+  const subscriptions = await getStripeSubscriptionsForCustomer(customerId);
+  const candidates = (subscriptions.data ?? [])
+    .filter((subscription) => ['active', 'trialing'].includes(subscription.status ?? 'active'))
+    .sort((left, right) => {
+      const leftTime = left.created ?? left.start_date ?? 0;
+      const rightTime = right.created ?? right.start_date ?? 0;
+      return rightTime - leftTime;
+    });
+
+  const subscription = candidates[0];
+
+  if (!subscription) {
+    throw new Error('No active Stripe subscription found for this customer.');
+  }
+
+  return syncStripeSubscriptionRecordForUser(subscription, userId);
 }
 
 export async function syncCheckoutSessionForUser(sessionId: string, userId: string) {
