@@ -15,6 +15,9 @@ import {
   resolveSubscriptionFromCheckoutSession,
 } from '@/lib/stripe';
 
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing', 'past_due']);
+const TERMINAL_SUBSCRIPTION_STATUSES = new Set(['canceled', 'incomplete_expired', 'unpaid']);
+
 async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnType<typeof getStripeSubscription>>, userId: string) {
   const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
   const plan = getPlanFromStripePriceId(priceId);
@@ -23,10 +26,6 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
 
   if (!plan || !subscription.customer) {
     throw new Error('Stripe subscription does not match a configured ImgReady plan.');
-  }
-
-  if (!['active', 'trialing'].includes(subscriptionStatus)) {
-    throw new Error('Stripe subscription is not active yet.');
   }
 
   const periodStart =
@@ -65,6 +64,41 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     currentUser.stripeCustomerId !== subscription.customer
   ) {
     throw new Error('Stripe subscription does not belong to this account.');
+  }
+
+  if (TERMINAL_SUBSCRIPTION_STATUSES.has(subscriptionStatus)) {
+    const renewedCredits = await getRenewedCreditTotal({
+      user: currentUser,
+      nextPlan: 'free',
+    });
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        plan: 'free',
+        scheduledPlan: null,
+        planChangeAt: null,
+        credits: renewedCredits,
+        stripeCustomerId: subscription.customer,
+        stripeSubscriptionId: null,
+        stripePriceId: null,
+        subscriptionStatus: 'expired',
+        cancelAtPeriodEnd: false,
+        planStartedAt: new Date(),
+        planExpiresAt: null,
+      },
+    });
+
+    return {
+      plan: 'free',
+      subscriptionId: subscription.id,
+      status: 'expired',
+      cancelAtPeriodEnd: false,
+    };
+  }
+
+  if (!ACTIVE_SUBSCRIPTION_STATUSES.has(subscriptionStatus)) {
+    throw new Error(`Stripe subscription status is ${subscriptionStatus}.`);
   }
 
   const shouldResetCredits =
@@ -109,7 +143,10 @@ export async function syncStripeSubscriptionForUser(subscriptionId: string, user
 export async function syncLatestStripeSubscriptionForCustomer(customerId: string, userId: string) {
   const subscriptions = await getStripeSubscriptionsForCustomer(customerId);
   const candidates = (subscriptions.data ?? [])
-    .filter((subscription) => ['active', 'trialing'].includes(subscription.status ?? 'active'))
+    .filter((subscription) => {
+      const status = subscription.status ?? 'active';
+      return ACTIVE_SUBSCRIPTION_STATUSES.has(status) || TERMINAL_SUBSCRIPTION_STATUSES.has(status);
+    })
     .sort((left, right) => {
       if (left.cancel_at_period_end !== right.cancel_at_period_end) {
         return left.cancel_at_period_end ? -1 : 1;
@@ -123,10 +160,11 @@ export async function syncLatestStripeSubscriptionForCustomer(customerId: string
   const subscription = candidates[0];
 
   if (!subscription) {
-    throw new Error('No active Stripe subscription found for this customer.');
+    throw new Error('No Stripe subscription found for this customer.');
   }
 
-  return syncStripeSubscriptionRecordForUser(subscription, userId);
+  const freshSubscription = await getStripeSubscription(subscription.id);
+  return syncStripeSubscriptionRecordForUser(freshSubscription, userId);
 }
 
 export async function syncCheckoutSessionForUser(sessionId: string, userId: string) {

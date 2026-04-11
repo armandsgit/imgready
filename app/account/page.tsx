@@ -32,6 +32,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 function formatDate(value: Date) {
   const day = `${value.getUTCDate()}`.padStart(2, '0');
   const month = `${value.getUTCMonth() + 1}`.padStart(2, '0');
@@ -165,10 +167,10 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     try {
       let subscriptionSyncResult: Awaited<ReturnType<typeof syncStripeSubscriptionForUser>> | null = null;
 
-      if (user.stripeCustomerId) {
-        subscriptionSyncResult = await syncLatestStripeSubscriptionForCustomer(user.stripeCustomerId, session.user.id);
-      } else if (user.stripeSubscriptionId) {
+      if (user.stripeSubscriptionId) {
         subscriptionSyncResult = await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
+      } else if (user.stripeCustomerId) {
+        subscriptionSyncResult = await syncLatestStripeSubscriptionForCustomer(user.stripeCustomerId, session.user.id);
       }
 
       console.log('[account] stripe subscription synced', subscriptionSyncResult);
@@ -213,9 +215,9 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       }
     } catch (error) {
       console.error('[account] stripe subscription sync failed', error);
-      subscriptionMessage =
-        subscriptionMessage ??
-        `Could not sync Stripe subscription status: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      subscriptionMessage = `Could not sync Stripe subscription status: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`;
       // Keep the current local state visible if Stripe has not finalized the subscription update yet.
     }
   }
