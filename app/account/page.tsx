@@ -17,7 +17,7 @@ import { getCreditBreakdownForUser } from '@/lib/creditBalances';
 import { PLAN_CONFIG, formatCredits, getPlanName, hasUnlimitedCredits, isPlanId } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { buildReferralLink, ensureUserReferralCode } from '@/lib/referrals';
-import { syncCheckoutSessionForUser, syncCreditTopUpSessionForUser } from '@/lib/stripeSync';
+import { syncCheckoutSessionForUser, syncCreditTopUpSessionForUser, syncStripeSubscriptionForUser } from '@/lib/stripeSync';
 
 export const metadata: Metadata = {
   title: 'Account — ImgReady',
@@ -111,7 +111,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
 
   await ensureUserPlanValidity(session.user.id);
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: {
       id: true,
@@ -123,6 +123,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       planChangeAt: true,
       credits: true,
       stripeCustomerId: true,
+      stripeSubscriptionId: true,
       subscriptionStatus: true,
       cancelAtPeriodEnd: true,
       planStartedAt: true,
@@ -143,6 +144,52 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       },
     },
   });
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.subscriptionStatus === 'pending_upgrade' && user.stripeSubscriptionId) {
+    try {
+      await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          id: true,
+          email: true,
+          emailVerified: true,
+          createdAt: true,
+          plan: true,
+          scheduledPlan: true,
+          planChangeAt: true,
+          credits: true,
+          stripeCustomerId: true,
+          stripeSubscriptionId: true,
+          subscriptionStatus: true,
+          cancelAtPeriodEnd: true,
+          planStartedAt: true,
+          planExpiresAt: true,
+          processedCount: true,
+          referralCode: true,
+          affiliateBalance: true,
+          creditTopUps: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 5,
+            select: {
+              id: true,
+              credits: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+      subscriptionMessage = subscriptionMessage ?? 'Plan updated successfully. Your credits are ready.';
+    } catch {
+      // Keep the pending state visible if Stripe has not finalized the plan change yet.
+    }
+  }
 
   if (!user) {
     redirect('/login');

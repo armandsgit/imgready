@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ensureUserPlanValidity } from '@/lib/billing';
+import { getRenewedCreditTotal } from '@/lib/creditBalances';
 import { prisma } from '@/lib/prisma';
 import {
   createCheckoutSession,
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
         email: true,
         plan: true,
         credits: true,
+        createdAt: true,
         stripeCustomerId: true,
         stripeSubscriptionId: true,
         planStartedAt: true,
@@ -105,6 +107,7 @@ export async function POST(request: Request) {
       subscriptionId: user.stripeSubscriptionId,
       priceId: getStripePriceId(requestedPlan),
       prorationBehavior: isUpgrade ? 'always_invoice' : 'none',
+      paymentBehavior: isUpgrade ? 'error_if_incomplete' : undefined,
     });
 
     const periodStart =
@@ -117,28 +120,34 @@ export async function POST(request: Request) {
       updatedSubscription.current_period_end ??
       null;
     const priceId = updatedSubscription.items?.data?.[0]?.price?.id ?? getStripePriceId(requestedPlan);
+    const renewedCredits = isUpgrade
+      ? await getRenewedCreditTotal({
+          user,
+          nextPlan: requestedPlan,
+        })
+      : user.credits;
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        // Only Stripe-confirmed webhook/sync paths may grant paid-plan credits.
-        // Upgrades stay on the current plan until Stripe confirms payment.
-        plan: user.plan,
-        scheduledPlan: requestedPlan,
-        planChangeAt: periodEnd
-          ? new Date(periodEnd * 1000)
-          : user.planExpiresAt,
-        credits: user.credits,
+        plan: isUpgrade ? requestedPlan : user.plan,
+        scheduledPlan: isUpgrade ? null : requestedPlan,
+        planChangeAt: isUpgrade
+          ? null
+          : periodEnd
+            ? new Date(periodEnd * 1000)
+            : user.planExpiresAt,
+        credits: renewedCredits,
         stripeSubscriptionId: updatedSubscription.id,
         stripePriceId: priceId,
-        subscriptionStatus: isUpgrade ? 'pending_upgrade' : updatedSubscription.status ?? 'active',
+        subscriptionStatus: updatedSubscription.status ?? 'active',
         cancelAtPeriodEnd: Boolean(updatedSubscription.cancel_at_period_end),
         planStartedAt: periodStart ? new Date(periodStart * 1000) : user.planStartedAt,
         planExpiresAt: periodEnd ? new Date(periodEnd * 1000) : null,
       },
     });
 
-    return NextResponse.json({ success: true, mode: isUpgrade ? 'pending_upgrade' : 'scheduled_downgrade' });
+    return NextResponse.json({ success: true, mode: isUpgrade ? 'updated' : 'scheduled_downgrade' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not change Stripe plan.';
     return NextResponse.json({ error: message }, { status: 500 });

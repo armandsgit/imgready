@@ -30,7 +30,7 @@ interface MeResponse {
 interface ChangePlanResponse {
   error?: string;
   url?: string;
-  mode?: 'checkout' | 'pending_upgrade' | 'scheduled_downgrade';
+  mode?: 'checkout' | 'updated' | 'pending_upgrade' | 'scheduled_downgrade';
 }
 
 interface PlanSwitchModalState {

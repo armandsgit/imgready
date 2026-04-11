@@ -4,6 +4,7 @@ import { getRenewedCreditTotal, isSameBillingCycle } from '@/lib/creditBalances'
 import { awardReferralReward } from '@/lib/referrals';
 import {
   getCheckoutSession,
+  getPlanFromStripePriceId,
   getStripeSubscription,
   isCreditPackage,
   resolvePlanFromCheckoutSession,
@@ -12,6 +13,82 @@ import {
   resolveSubscriptionPriceId,
   resolveSubscriptionFromCheckoutSession,
 } from '@/lib/stripe';
+
+export async function syncStripeSubscriptionForUser(subscriptionId: string, userId: string) {
+  const subscription = await getStripeSubscription(subscriptionId);
+  const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
+  const plan = getPlanFromStripePriceId(priceId);
+  const subscriptionStatus = subscription.status ?? 'active';
+
+  if (!plan || !subscription.customer) {
+    throw new Error('Stripe subscription does not match a configured ImgReady plan.');
+  }
+
+  if (!['active', 'trialing'].includes(subscriptionStatus)) {
+    throw new Error('Stripe subscription is not active yet.');
+  }
+
+  const periodStart =
+    subscription.items?.data?.[0]?.current_period_start ??
+    subscription.current_period_start ??
+    subscription.start_date ??
+    null;
+  const periodEnd =
+    subscription.items?.data?.[0]?.current_period_end ??
+    subscription.current_period_end ??
+    null;
+  const nextPlanStartedAt = periodStart ? new Date(periodStart * 1000) : null;
+  const nextPlanExpiresAt = periodEnd ? new Date(periodEnd * 1000) : null;
+
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      plan: true,
+      credits: true,
+      createdAt: true,
+      planStartedAt: true,
+      planExpiresAt: true,
+      stripeSubscriptionId: true,
+    },
+  });
+
+  if (!currentUser) {
+    throw new Error('User not found.');
+  }
+
+  if (currentUser.stripeSubscriptionId && currentUser.stripeSubscriptionId !== subscription.id) {
+    throw new Error('Stripe subscription does not belong to this account.');
+  }
+
+  const shouldResetCredits =
+    currentUser.plan !== plan || !isSameBillingCycle(currentUser.planStartedAt, nextPlanStartedAt);
+  const renewedCredits = shouldResetCredits
+    ? await getRenewedCreditTotal({
+        user: currentUser,
+        nextPlan: plan,
+      })
+    : currentUser.credits;
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      plan,
+      scheduledPlan: null,
+      planChangeAt: null,
+      credits: renewedCredits,
+      stripeCustomerId: subscription.customer,
+      stripeSubscriptionId: subscription.id,
+      stripePriceId: priceId,
+      subscriptionStatus,
+      cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+      planStartedAt: nextPlanStartedAt,
+      planExpiresAt: nextPlanExpiresAt,
+    },
+  });
+
+  return { plan };
+}
 
 export async function syncCheckoutSessionForUser(sessionId: string, userId: string) {
   const session = await getCheckoutSession(sessionId);

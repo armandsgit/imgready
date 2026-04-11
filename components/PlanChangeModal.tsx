@@ -45,10 +45,10 @@ export default function PlanChangeModal({
   const title = `Switch to ${targetPlanName} plan?`;
   const body = scheduledChange
     ? `Switching from ${currentPlanName} to ${targetPlanName} will take effect on your next billing cycle.`
-    : `Switching from ${currentPlanName} to ${targetPlanName} will apply immediately after you confirm your plan change.`;
+    : `Switching from ${currentPlanName} to ${targetPlanName} uses your saved Stripe payment method and applies immediately after Stripe confirms the payment.`;
   const bullets = scheduledChange
     ? ['You keep your current credits', `You keep ${currentPlanName} benefits until billing end`]
-    : ['You keep your current credits', 'Your new plan starts as soon as the change is confirmed'];
+    : ['Stripe confirms the upgrade charge first', 'Your new plan credits are added after payment succeeds'];
   const footnote = scheduledChange
     ? `${billingEndDate ? `Your current cycle ends on ${billingEndDate}. ` : ''}You can upgrade again anytime.`
     : billingEndDate

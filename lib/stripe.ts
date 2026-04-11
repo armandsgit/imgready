@@ -290,6 +290,7 @@ export async function updateStripeSubscriptionPlan(params: {
   subscriptionId: string;
   priceId: string;
   prorationBehavior?: 'always_invoice' | 'none';
+  paymentBehavior?: 'allow_incomplete' | 'default_incomplete' | 'error_if_incomplete' | 'pending_if_incomplete';
 }) {
   const currentSubscription = await getStripeSubscription(params.subscriptionId);
   const currentItem = currentSubscription.items?.data?.[0] as StripeSubscriptionItem | undefined;
@@ -303,6 +304,9 @@ export async function updateStripeSubscriptionPlan(params: {
   body.set('items[0][price]', params.priceId);
   body.set('cancel_at_period_end', 'false');
   body.set('proration_behavior', params.prorationBehavior ?? 'always_invoice');
+  if (params.paymentBehavior) {
+    body.set('payment_behavior', params.paymentBehavior);
+  }
 
   return stripeRequest<StripeSubscription>(`/subscriptions/${params.subscriptionId}`, body);
 }

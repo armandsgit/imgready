@@ -349,9 +349,10 @@ export async function POST(request: Request) {
         break;
       }
 
-      case 'invoice.paid': {
+      case 'invoice.paid':
+      case 'invoice.payment_succeeded': {
         const invoice = event.data.object as StripeInvoiceObject;
-        console.log('[referral] stripe event invoice.paid', {
+        console.log(`[referral] stripe event ${event.type}`, {
           invoiceId: invoice.id,
           customer: invoice.customer,
           subscription: invoice.subscription,
