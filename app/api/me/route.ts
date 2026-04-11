@@ -34,5 +34,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  return NextResponse.json(user);
+  return NextResponse.json({
+    ...user,
+    image: session.user.image ?? null,
+  });
 }

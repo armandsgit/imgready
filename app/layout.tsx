@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const branding = await getBrandingSettings();
   const session = await getServerSession(authOptions);
-  let initialAccount: { email: string; credits: number; plan: string } | null = null;
+  let initialAccount: { email: string; credits: number; plan: string; image?: string | null } | null = null;
 
   if (session?.user?.id) {
     await ensureUserPlanValidity(session.user.id);
@@ -81,6 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         email: user.email,
         credits: user.credits,
         plan: user.plan,
+        image: session.user.image ?? null,
       };
     }
   }

@@ -11,6 +11,7 @@ import ManageBillingButton from '@/components/ManageBillingButton';
 import ReferralCopyButton from '@/components/ReferralCopyButton';
 import ResumeSubscriptionButton from '@/components/ResumeSubscriptionButton';
 import UndoDowngradeButton from '@/components/UndoDowngradeButton';
+import UserAvatar from '@/components/UserAvatar';
 import { authOptions } from '@/lib/auth';
 import { ensureUserPlanValidity } from '@/lib/billing';
 import { getCreditBreakdownForUser } from '@/lib/creditBalances';
@@ -324,6 +325,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           email: user.email,
           credits: user.credits,
           plan: user.plan,
+          image: session.user.image ?? null,
         }}
       />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),transparent_22%)]" />
@@ -518,9 +520,12 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <section className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
           <div className="panel flex h-full flex-col rounded-[26px] p-5 md:p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Profile</p>
-                <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">Account details</h2>
+              <div className="flex items-center gap-4">
+                <UserAvatar email={user.email} image={session.user.image ?? null} size="lg" />
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Profile</p>
+                  <h2 className="text-2xl font-semibold text-[color:var(--text-primary)]">Account details</h2>
+                </div>
               </div>
               <div className="rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] p-3 text-[color:var(--accent-primary)]">
                 <Mail className="h-5 w-5" />

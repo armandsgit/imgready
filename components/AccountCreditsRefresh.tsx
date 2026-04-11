@@ -8,6 +8,7 @@ interface MeResponse {
   email: string;
   credits: number;
   plan: string;
+  image?: string | null;
 }
 
 interface AccountCreditsRefreshProps {

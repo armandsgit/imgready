@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import UserAvatar from '@/components/UserAvatar';
 import type { BrandingSettings } from '@/lib/appConfig';
 import { UNLIMITED_CREDITS, formatCredits } from '@/lib/plans';
 
@@ -11,6 +12,7 @@ interface MeResponse {
   email: string;
   credits: number;
   plan: string;
+  image?: string | null;
 }
 
 interface NavbarProps {
@@ -125,6 +127,13 @@ export default function Navbar({ initialBranding, initialAccount }: NavbarProps)
                 className="theme-secondary-button hidden rounded-xl px-4 py-2 text-sm font-medium sm:inline-flex"
               >
                 Upgrade
+              </Link>
+              <Link
+                href="/account"
+                className="inline-flex items-center rounded-full transition hover:opacity-85"
+                aria-label="Open account"
+              >
+                <UserAvatar email={account.email} image={account.image} size="sm" />
               </Link>
               <Link
                 href="/account"

@@ -95,10 +95,14 @@ export const authOptions: NextAuthOptions = {
         user?.email?.trim().toLowerCase() ??
         (typeof token.email === 'string' ? token.email.trim().toLowerCase() : '') ??
         (typeof profile?.email === 'string' ? profile.email.trim().toLowerCase() : '');
+      const profileImage =
+        user?.image ??
+        (profile && 'picture' in profile && typeof profile.picture === 'string' ? profile.picture : null);
 
       if (user) {
         token.sub = user.id;
         token.email = normalizedEmail;
+        token.picture = profileImage;
       }
 
       if (normalizedEmail) {
@@ -120,6 +124,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.sub ?? '';
         session.user.email = token.email ?? session.user.email ?? '';
+        session.user.image = token.picture ?? null;
       }
 
       return session;
