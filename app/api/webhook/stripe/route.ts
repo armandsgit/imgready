@@ -144,8 +144,7 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
   const isImmediateUpgrade =
     user.plan === 'free' ||
     (isBillingPlanId(user.plan) && isBillingPlanId(plan) && isBillingUpgrade(user.plan, plan));
-  const isScheduledFreeCancellation =
-    user.scheduledPlan === 'free' && cancellationScheduled && user.plan === plan;
+  const isScheduledFreeCancellation = user.scheduledPlan === 'free' && cancellationScheduled;
   const shouldApplyStripePlanImmediately =
     !user.scheduledPlan ||
     !user.planChangeAt ||

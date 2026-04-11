@@ -126,8 +126,7 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     isImmediateUpgrade ||
     scheduledPlanReached;
   const sameBillingCycle = currentUser.plan === plan && isSameBillingCycle(currentUser.planStartedAt, nextPlanStartedAt);
-  const isScheduledFreeCancellation =
-    currentUser.scheduledPlan === 'free' && cancellationScheduled && currentUser.plan === plan;
+  const isScheduledFreeCancellation = currentUser.scheduledPlan === 'free' && cancellationScheduled;
   const shouldApplySyncedPlan = shouldApplyStripePlanImmediately && !isScheduledFreeCancellation;
   const shouldResetCredits = shouldApplySyncedPlan && !sameBillingCycle;
   const renewedCredits = shouldResetCredits
