@@ -1,35 +1,53 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import path from 'path';
 import { defaultBrandingSettings, type BrandingSettings } from '@/lib/appConfig';
+import { prisma } from '@/lib/prisma';
 
-const brandingFilePath = path.join(process.cwd(), 'data', 'branding.json');
+const BRANDING_SETTINGS_SLUG = '__branding';
+
+function normalizeBrandingSettings(nextSettings: Partial<BrandingSettings>): BrandingSettings {
+  return {
+    logo: nextSettings.logo?.trim() || defaultBrandingSettings.logo,
+    logoAlt: nextSettings.logoAlt?.trim() || defaultBrandingSettings.logoAlt,
+    heroImage: nextSettings.heroImage?.trim() || defaultBrandingSettings.heroImage,
+    heroImageAlt: nextSettings.heroImageAlt?.trim() || defaultBrandingSettings.heroImageAlt,
+  };
+}
 
 export async function getBrandingSettings(): Promise<BrandingSettings> {
   try {
-    const content = await readFile(brandingFilePath, 'utf8');
+    const settings = await prisma.sitePage.findUnique({
+      where: { slug: BRANDING_SETTINGS_SLUG },
+      select: { content: true },
+    });
+
+    if (!settings) {
+      return defaultBrandingSettings;
+    }
+
+    const content = settings.content;
     const parsed = JSON.parse(content) as Partial<BrandingSettings>;
 
-    return {
-      logo: parsed.logo?.trim() || defaultBrandingSettings.logo,
-      logoAlt: parsed.logoAlt?.trim() || defaultBrandingSettings.logoAlt,
-      heroImage: parsed.heroImage?.trim() || defaultBrandingSettings.heroImage,
-      heroImageAlt: parsed.heroImageAlt?.trim() || defaultBrandingSettings.heroImageAlt,
-    };
+    return normalizeBrandingSettings(parsed);
   } catch {
     return defaultBrandingSettings;
   }
 }
 
 export async function saveBrandingSettings(nextSettings: BrandingSettings): Promise<BrandingSettings> {
-  const normalized: BrandingSettings = {
-    logo: nextSettings.logo.trim() || defaultBrandingSettings.logo,
-    logoAlt: nextSettings.logoAlt.trim() || defaultBrandingSettings.logoAlt,
-    heroImage: nextSettings.heroImage.trim() || defaultBrandingSettings.heroImage,
-    heroImageAlt: nextSettings.heroImageAlt.trim() || defaultBrandingSettings.heroImageAlt,
-  };
+  const normalized = normalizeBrandingSettings(nextSettings);
 
-  await mkdir(path.dirname(brandingFilePath), { recursive: true });
-  await writeFile(brandingFilePath, `${JSON.stringify(normalized, null, 2)}\n`, 'utf8');
+  await prisma.sitePage.upsert({
+    where: { slug: BRANDING_SETTINGS_SLUG },
+    update: {
+      content: JSON.stringify(normalized),
+      lastUpdatedAt: new Date(),
+    },
+    create: {
+      slug: BRANDING_SETTINGS_SLUG,
+      title: 'Branding Settings',
+      content: JSON.stringify(normalized),
+      lastUpdatedAt: new Date(),
+    },
+  });
 
   return normalized;
 }
