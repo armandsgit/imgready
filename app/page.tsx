@@ -47,14 +47,14 @@ const steps = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: 'ImgReady — AI Product Image Tool',
+  title: 'ImgReady — Clean Product Images for E-commerce',
   description:
     'Remove backgrounds, center products, and optimize product images for clean marketplace and store listings.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'ImgReady — AI Product Image Tool',
+    title: 'ImgReady — Clean Product Images for E-commerce',
     description:
       'Remove backgrounds, center products, and optimize product images for clean marketplace and store listings.',
     url: '/',

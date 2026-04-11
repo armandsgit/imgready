@@ -33,12 +33,12 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://www.imgready.io',
     siteName: 'ImgReady',
-    title: 'ImgReady — AI Product Image Tool',
+    title: 'ImgReady — Clean Product Images for E-commerce',
     description: 'Create clean, listing-ready product images with white backgrounds in seconds.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ImgReady — AI Product Image Tool',
+    title: 'ImgReady — Clean Product Images for E-commerce',
     description: 'Create clean, listing-ready product images with white backgrounds in seconds.',
   },
   icons: {
