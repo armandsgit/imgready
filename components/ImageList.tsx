@@ -406,7 +406,12 @@ function PreviewModalContent({
           </div>
         </div>
       ) : (
-        <BeforeAfterSlider beforeSrc={item.originalImage} afterSrc={item.displayImage ?? item.resultImage} processing={isWorking} />
+        <BeforeAfterSlider
+          beforeSrc={item.originalImage}
+          afterSrc={item.displayImage ?? item.resultImage}
+          processing={isWorking}
+          transparentAfter={item.downloadFormat === 'png' && item.downloadBackground === 'transparent'}
+        />
       )}
 
       <div className="flex flex-col gap-3 border-t border-[color:var(--border-color)] pt-4 md:flex-row md:items-center md:justify-between">

@@ -7,9 +7,18 @@ interface BeforeAfterSliderProps {
   beforeSrc: string;
   afterSrc?: string | null;
   processing?: boolean;
+  transparentAfter?: boolean;
 }
 
-export default function BeforeAfterSlider({ beforeSrc, afterSrc, processing = false }: BeforeAfterSliderProps) {
+const transparentPreviewBackground = {
+  backgroundColor: '#141416',
+  backgroundImage:
+    'linear-gradient(45deg, rgba(255,255,255,0.08) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.08) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.08) 75%)',
+  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
+  backgroundSize: '20px 20px',
+};
+
+export default function BeforeAfterSlider({ beforeSrc, afterSrc, processing = false, transparentAfter = false }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -92,7 +101,10 @@ export default function BeforeAfterSlider({ beforeSrc, afterSrc, processing = fa
             className="absolute inset-0 overflow-hidden"
             style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)`, willChange: 'clip-path' }}
           >
-            <div className="theme-slider-after absolute inset-0 p-6">
+            <div
+              className="theme-slider-after absolute inset-0 p-6"
+              style={transparentAfter ? transparentPreviewBackground : undefined}
+            >
               <div className="relative h-full w-full">
                 <img
                   src={afterSrc ?? ''}

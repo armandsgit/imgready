@@ -223,7 +223,12 @@ export default function ImageCard({ item, onRetry, onRefine }: ImageCardProps) {
               </div>
             </div>
           ) : (
-            <BeforeAfterSlider beforeSrc={item.originalImage} afterSrc={finalProcessedImage} processing={isWorking} />
+            <BeforeAfterSlider
+              beforeSrc={item.originalImage}
+              afterSrc={finalProcessedImage}
+              processing={isWorking}
+              transparentAfter={item.downloadFormat === 'png' && item.downloadBackground === 'transparent'}
+            />
           )}
         </div>
 
