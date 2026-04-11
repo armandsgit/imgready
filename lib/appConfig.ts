@@ -1,8 +1,8 @@
 export const appConfig = {
   branding: {
-    logo: process.env.NEXT_PUBLIC_APP_LOGO || '/img/logomain.png',
-    logoAlt: process.env.NEXT_PUBLIC_APP_LOGO_ALT || 'AI Tools',
-    heroImage: process.env.NEXT_PUBLIC_HERO_IMAGE || '/img/pic.jpg',
+    logo: process.env.NEXT_PUBLIC_APP_LOGO || '/img/branding/logoimgready-1775387072592.svg',
+    logoAlt: process.env.NEXT_PUBLIC_APP_LOGO_ALT || 'ImgReady',
+    heroImage: process.env.NEXT_PUBLIC_HERO_IMAGE || '/img/branding/21fe5-1775498224642.jpg',
     heroImageAlt: process.env.NEXT_PUBLIC_HERO_IMAGE_ALT || 'Product sample',
   },
 } as const;
