@@ -140,7 +140,11 @@ export async function syncStripeSubscriptionForUser(subscriptionId: string, user
   return syncStripeSubscriptionRecordForUser(subscription, userId);
 }
 
-export async function syncLatestStripeSubscriptionForCustomer(customerId: string, userId: string) {
+export async function syncLatestStripeSubscriptionForCustomer(
+  customerId: string,
+  userId: string,
+  preferredSubscriptionId?: string | null
+) {
   const subscriptions = await getStripeSubscriptionsForCustomer(customerId);
   const candidates = (subscriptions.data ?? [])
     .filter((subscription) => {
@@ -150,6 +154,16 @@ export async function syncLatestStripeSubscriptionForCustomer(customerId: string
     .sort((left, right) => {
       if (left.cancel_at_period_end !== right.cancel_at_period_end) {
         return left.cancel_at_period_end ? -1 : 1;
+      }
+
+      if (preferredSubscriptionId && left.id !== right.id) {
+        if (left.id === preferredSubscriptionId) {
+          return -1;
+        }
+
+        if (right.id === preferredSubscriptionId) {
+          return 1;
+        }
       }
 
       const leftTime = left.created ?? left.start_date ?? 0;

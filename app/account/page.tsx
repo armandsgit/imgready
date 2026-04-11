@@ -167,10 +167,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     try {
       let subscriptionSyncResult: Awaited<ReturnType<typeof syncStripeSubscriptionForUser>> | null = null;
 
-      if (user.stripeSubscriptionId) {
+      if (user.stripeCustomerId) {
+        subscriptionSyncResult = await syncLatestStripeSubscriptionForCustomer(
+          user.stripeCustomerId,
+          session.user.id,
+          user.stripeSubscriptionId
+        );
+      } else if (user.stripeSubscriptionId) {
         subscriptionSyncResult = await syncStripeSubscriptionForUser(user.stripeSubscriptionId, session.user.id);
-      } else if (user.stripeCustomerId) {
-        subscriptionSyncResult = await syncLatestStripeSubscriptionForCustomer(user.stripeCustomerId, session.user.id);
       }
 
       console.log('[account] stripe subscription synced', subscriptionSyncResult);
