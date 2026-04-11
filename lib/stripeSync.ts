@@ -5,8 +5,10 @@ import { awardReferralReward } from '@/lib/referrals';
 import {
   getCheckoutSession,
   getPlanFromStripePriceId,
+  getStripeSubscriptionCancellationUnix,
   getStripeSubscription,
   getStripeSubscriptionsForCustomer,
+  isStripeSubscriptionCancellationScheduled,
   isCreditPackage,
   resolvePlanFromCheckoutSession,
   resolveSubscriptionPeriodStart,
@@ -22,7 +24,9 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
   const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
   const plan = getPlanFromStripePriceId(priceId);
   const subscriptionStatus = subscription.status ?? 'active';
-  const nextSubscriptionStatus = subscription.cancel_at_period_end ? 'cancelling' : subscriptionStatus;
+  const cancellationScheduled = isStripeSubscriptionCancellationScheduled(subscription);
+  const cancellationUnix = getStripeSubscriptionCancellationUnix(subscription);
+  const nextSubscriptionStatus = cancellationScheduled ? 'cancelling' : subscriptionStatus;
 
   if (!plan || !subscription.customer) {
     throw new Error('Stripe subscription does not match a configured ImgReady plan.');
@@ -34,6 +38,7 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     subscription.start_date ??
     null;
   const periodEnd =
+    (cancellationScheduled ? cancellationUnix : null) ??
     subscription.items?.data?.[0]?.current_period_end ??
     subscription.current_period_end ??
     null;
@@ -121,7 +126,7 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
       subscriptionStatus: nextSubscriptionStatus,
-      cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+      cancelAtPeriodEnd: cancellationScheduled,
       planStartedAt: nextPlanStartedAt,
       planExpiresAt: nextPlanExpiresAt,
     },
@@ -131,7 +136,8 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     plan,
     subscriptionId: subscription.id,
     status: nextSubscriptionStatus,
-    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+    cancelAtPeriodEnd: cancellationScheduled,
+    cancelAt: cancellationUnix,
   };
 }
 
@@ -152,8 +158,11 @@ export async function syncLatestStripeSubscriptionForCustomer(
       return ACTIVE_SUBSCRIPTION_STATUSES.has(status) || TERMINAL_SUBSCRIPTION_STATUSES.has(status);
     })
     .sort((left, right) => {
-      if (left.cancel_at_period_end !== right.cancel_at_period_end) {
-        return left.cancel_at_period_end ? -1 : 1;
+      const leftCancelling = isStripeSubscriptionCancellationScheduled(left);
+      const rightCancelling = isStripeSubscriptionCancellationScheduled(right);
+
+      if (leftCancelling !== rightCancelling) {
+        return leftCancelling ? -1 : 1;
       }
 
       if (preferredSubscriptionId && left.id !== right.id) {
@@ -178,6 +187,8 @@ export async function syncLatestStripeSubscriptionForCustomer(
       id: subscription.id,
       status: subscription.status,
       cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+      cancelAt: getStripeSubscriptionCancellationUnix(subscription),
+      cancellationScheduled: isStripeSubscriptionCancellationScheduled(subscription),
       created: subscription.created,
       startDate: subscription.start_date,
       priceId: subscription.items?.data?.[0]?.price?.id ?? null,

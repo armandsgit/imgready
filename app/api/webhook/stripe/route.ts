@@ -6,6 +6,8 @@ import { awardReferralReward } from '@/lib/referrals';
 import {
   getPlanFromStripePriceId,
   getStripeSubscription,
+  getStripeSubscriptionCancellationUnix,
+  isStripeSubscriptionCancellationScheduled,
   isBillingPlanId,
   isBillingUpgrade,
   isCreditPackage,
@@ -59,6 +61,7 @@ interface StripeSubscriptionObject {
   customer?: string | null;
   id?: string | null;
   status?: string | null;
+  cancel_at?: number | null;
   cancel_at_period_end?: boolean | null;
   start_date?: number | null;
   current_period_start?: number | null;
@@ -100,7 +103,10 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
     subscription.current_period_start ??
     subscription.start_date ??
     null;
+  const cancellationScheduled = isStripeSubscriptionCancellationScheduled(subscription);
+  const cancellationUnix = getStripeSubscriptionCancellationUnix(subscription);
   const periodEnd =
+    (cancellationScheduled ? cancellationUnix : null) ??
     subscription.items?.data?.[0]?.current_period_end ??
     subscription.current_period_end ??
     null;
@@ -166,8 +172,8 @@ async function syncSubscriptionToUser(subscription: StripeSubscriptionObject) {
         : {}),
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
-      subscriptionStatus: subscription.cancel_at_period_end ? 'cancelling' : subscription.status ?? 'active',
-      cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+      subscriptionStatus: cancellationScheduled ? 'cancelling' : subscription.status ?? 'active',
+      cancelAtPeriodEnd: cancellationScheduled,
       planStartedAt: periodStartDate,
       planExpiresAt: periodEndDate,
     },

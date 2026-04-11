@@ -42,6 +42,7 @@ interface StripeBillingPortalSession {
 interface StripeSubscription {
   id: string;
   status?: string | null;
+  cancel_at?: number | null;
   cancel_at_period_end?: boolean | null;
   created?: number | null;
   schedule?: string | { id?: string | null } | null;
@@ -353,6 +354,26 @@ export function getStripeSubscriptionScheduleId(subscription: StripeSubscription
   }
 
   return typeof subscription.schedule === 'string' ? subscription.schedule : subscription.schedule.id ?? null;
+}
+
+export function getStripeSubscriptionCancellationUnix(subscription: {
+  cancel_at?: number | null;
+}) {
+  return typeof subscription.cancel_at === 'number' && subscription.cancel_at > 0 ? subscription.cancel_at : null;
+}
+
+export function isStripeSubscriptionCancellationScheduled(subscription: {
+  cancel_at?: number | null;
+  cancel_at_period_end?: boolean | null;
+  status?: string | null;
+}) {
+  const cancelAt = getStripeSubscriptionCancellationUnix(subscription);
+  const hasFutureCancelAt = cancelAt ? cancelAt * 1000 > Date.now() : false;
+
+  return Boolean(
+    subscription.cancel_at_period_end ||
+      (hasFutureCancelAt && subscription.status !== 'canceled' && subscription.status !== 'incomplete_expired')
+  );
 }
 
 function hasExpandedSubscription(
