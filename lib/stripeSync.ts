@@ -8,6 +8,8 @@ import {
   getStripeSubscriptionCancellationUnix,
   getStripeSubscription,
   getStripeSubscriptionsForCustomer,
+  isBillingPlanId,
+  isBillingUpgrade,
   isStripeSubscriptionCancellationScheduled,
   isCreditPackage,
   resolvePlanFromCheckoutSession,
@@ -54,6 +56,8 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
       createdAt: true,
       planStartedAt: true,
       planExpiresAt: true,
+      scheduledPlan: true,
+      planChangeAt: true,
       stripeCustomerId: true,
       stripeSubscriptionId: true,
     },
@@ -106,8 +110,23 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     throw new Error(`Stripe subscription status is ${subscriptionStatus}.`);
   }
 
-  const shouldResetCredits =
-    currentUser.plan !== plan || !isSameBillingCycle(currentUser.planStartedAt, nextPlanStartedAt);
+  const scheduledPlanReached = Boolean(
+    currentUser.scheduledPlan &&
+      currentUser.planChangeAt &&
+      nextPlanStartedAt &&
+      nextPlanStartedAt.getTime() >= currentUser.planChangeAt.getTime()
+  );
+  const isImmediateUpgrade =
+    currentUser.plan === 'free' ||
+    (isBillingPlanId(currentUser.plan) && isBillingPlanId(plan) && isBillingUpgrade(currentUser.plan, plan));
+  const shouldApplyStripePlanImmediately =
+    !currentUser.scheduledPlan ||
+    !currentUser.planChangeAt ||
+    currentUser.scheduledPlan !== plan ||
+    isImmediateUpgrade ||
+    scheduledPlanReached;
+  const sameBillingCycle = currentUser.plan === plan && isSameBillingCycle(currentUser.planStartedAt, nextPlanStartedAt);
+  const shouldResetCredits = shouldApplyStripePlanImmediately && !sameBillingCycle;
   const renewedCredits = shouldResetCredits
     ? await getRenewedCreditTotal({
         user: currentUser,
@@ -118,10 +137,14 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
   await prisma.user.update({
     where: { id: userId },
     data: {
-      plan,
-      scheduledPlan: null,
-      planChangeAt: null,
-      credits: renewedCredits,
+      ...(shouldApplyStripePlanImmediately
+        ? {
+            plan,
+            scheduledPlan: null,
+            planChangeAt: null,
+            credits: renewedCredits,
+          }
+        : {}),
       stripeCustomerId: subscription.customer,
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
