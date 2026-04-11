@@ -145,64 +145,94 @@ export default function Navbar({ initialBranding, initialAccount }: NavbarProps)
           {loading ? (
             <div className="h-10" />
           ) : account ? (
-            <div ref={accountMenuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setAccountMenuOpen((open) => !open)}
-                className="inline-flex items-center rounded-full transition hover:opacity-85 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[color:var(--page-bg)]"
-                aria-label="Open account menu"
-                aria-expanded={accountMenuOpen}
+            <>
+              <span className={`hidden text-sm font-medium sm:inline ${account.credits === 0 ? 'text-[color:var(--status-warning-text)]' : 'text-[color:var(--text-secondary)]'}`}>
+                {account.credits === UNLIMITED_CREDITS ? 'Unlimited credits' : `${formatCredits(account.credits)} credits`}
+                {account.credits === 0 ? ' ⚠' : ''}
+              </span>
+              <Link
+                href="/pricing"
+                className="theme-secondary-button hidden rounded-xl px-4 py-2 text-sm font-medium sm:inline-flex"
               >
-                <UserAvatar email={account.email} image={account.image} size="sm" />
-              </button>
+                Upgrade
+              </Link>
+              <div ref={accountMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setAccountMenuOpen((open) => !open)}
+                  className="inline-flex items-center rounded-full transition hover:opacity-85 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[color:var(--page-bg)]"
+                  aria-label="Open account menu"
+                  aria-expanded={accountMenuOpen}
+                >
+                  <UserAvatar email={account.email} image={account.image} size="sm" />
+                </button>
 
-              {accountMenuOpen && (
-                <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[min(280px,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-[color:var(--border-color)] bg-[rgba(28,28,32,0.96)] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-                  <div className="flex items-center gap-3 rounded-2xl bg-[color:var(--surface-muted)] p-3">
-                    <UserAvatar email={account.email} image={account.image} size="md" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">
-                        {`Account · ${formatPlanName(account.plan)}`}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-[color:var(--text-muted)]">{account.email}</p>
+                {accountMenuOpen && (
+                  <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[min(300px,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-[color:var(--border-color)] bg-[rgba(28,28,32,0.96)] p-3 shadow-[0_24px_80px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+                    <div className="flex items-center gap-3 rounded-2xl bg-[color:var(--surface-muted)] p-3">
+                      <UserAvatar email={account.email} image={account.image} size="md" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">ImgReady Account</p>
+                        <p className="mt-0.5 truncate text-xs text-[color:var(--text-muted)]">{account.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 space-y-2 rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-3 py-3 text-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-[color:var(--text-secondary)]">Plan</span>
+                        <span className="font-medium text-[color:var(--text-primary)]">{formatPlanName(account.plan)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-[color:var(--text-secondary)]">Credits</span>
+                        <span className={`font-medium ${account.credits === 0 ? 'text-[color:var(--status-warning-text)]' : 'text-[color:var(--text-primary)]'}`}>
+                          {account.credits === UNLIMITED_CREDITS ? 'Unlimited' : formatCredits(account.credits)}
+                          {account.credits === 0 ? ' ⚠' : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="my-3 h-px bg-[color:var(--border-color)]" />
+
+                    <div className="grid gap-2">
+                      <Link
+                        href="/pricing"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="theme-secondary-button inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium"
+                      >
+                        Upgrade plan
+                      </Link>
+                      <Link
+                        href="/account"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="inline-flex items-center justify-center rounded-xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-2.5 text-sm font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--surface-strong)]"
+                      >
+                        Buy credits
+                      </Link>
+                    </div>
+
+                    <div className="my-3 h-px bg-[color:var(--border-color)]" />
+
+                    <div className="grid gap-2">
+                      <Link
+                        href="/account"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="inline-flex items-center justify-center rounded-xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-2.5 text-sm font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--surface-strong)]"
+                      >
+                        Account settings
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        disabled={loggingOut}
+                        className="inline-flex items-center justify-center rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-[color:var(--text-secondary)] hover:border-[color:var(--border-color)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Logout'}
+                      </button>
                     </div>
                   </div>
-
-                  <div className="mt-3 rounded-2xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-3 py-2">
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-[color:var(--text-muted)]">Credits</p>
-                    <p className={`mt-1 text-sm font-medium ${account.credits === 0 ? 'text-[color:var(--status-warning-text)]' : 'text-[color:var(--text-primary)]'}`}>
-                      {account.credits === UNLIMITED_CREDITS ? 'Unlimited credits' : `${formatCredits(account.credits)} credits`}
-                      {account.credits === 0 ? ' ⚠' : ''}
-                    </p>
-                  </div>
-
-                  <div className="mt-3 grid gap-2">
-                    <Link
-                      href="/account"
-                      onClick={() => setAccountMenuOpen(false)}
-                      className="theme-secondary-button inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium"
-                    >
-                      Account settings
-                    </Link>
-                    <Link
-                      href="/pricing"
-                      onClick={() => setAccountMenuOpen(false)}
-                      className="inline-flex items-center justify-center rounded-xl border border-[color:var(--border-color)] bg-[color:var(--surface-muted)] px-4 py-2.5 text-sm font-medium text-[color:var(--text-primary)] transition hover:bg-[color:var(--surface-strong)]"
-                    >
-                      Upgrade plan
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      disabled={loggingOut}
-                      className="inline-flex items-center justify-center rounded-xl border border-transparent px-4 py-2.5 text-sm font-medium text-[color:var(--text-secondary)] hover:border-[color:var(--border-color)] hover:bg-[color:var(--surface-muted)] hover:text-[color:var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Logout'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </>
           ) : (
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
