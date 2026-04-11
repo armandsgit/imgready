@@ -50,6 +50,7 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
       createdAt: true,
       planStartedAt: true,
       planExpiresAt: true,
+      stripeCustomerId: true,
       stripeSubscriptionId: true,
     },
   });
@@ -58,7 +59,11 @@ async function syncStripeSubscriptionRecordForUser(subscription: Awaited<ReturnT
     throw new Error('User not found.');
   }
 
-  if (currentUser.stripeSubscriptionId && currentUser.stripeSubscriptionId !== subscription.id) {
+  if (
+    currentUser.stripeSubscriptionId &&
+    currentUser.stripeSubscriptionId !== subscription.id &&
+    currentUser.stripeCustomerId !== subscription.customer
+  ) {
     throw new Error('Stripe subscription does not belong to this account.');
   }
 
