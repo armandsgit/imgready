@@ -33,6 +33,7 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 function formatDate(value: Date) {
   const day = `${value.getUTCDate()}`.padStart(2, '0');

@@ -171,6 +171,19 @@ export async function syncLatestStripeSubscriptionForCustomer(
       return rightTime - leftTime;
     });
 
+  console.log('[stripeSync] customer subscription candidates', {
+    customerId,
+    preferredSubscriptionId,
+    subscriptions: candidates.map((subscription) => ({
+      id: subscription.id,
+      status: subscription.status,
+      cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+      created: subscription.created,
+      startDate: subscription.start_date,
+      priceId: subscription.items?.data?.[0]?.price?.id ?? null,
+    })),
+  });
+
   const subscription = candidates[0];
 
   if (!subscription) {

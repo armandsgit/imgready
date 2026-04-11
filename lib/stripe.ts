@@ -295,7 +295,7 @@ export async function getStripeSubscriptionsForCustomer(customerId: string) {
   const query = new URLSearchParams();
   query.set('customer', customerId);
   query.set('status', 'all');
-  query.set('limit', '10');
+  query.set('limit', '100');
   query.append('expand[]', 'data.schedule');
 
   return stripeGet<StripeSubscriptionList>('/subscriptions', query);
