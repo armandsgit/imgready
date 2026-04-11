@@ -48,6 +48,17 @@ const steps = [
 
 export const metadata: Metadata = {
   title: 'ImgReady — AI Product Image Tool',
+  description:
+    'Remove backgrounds, center products, and optimize product images for clean marketplace and store listings.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'ImgReady — AI Product Image Tool',
+    description:
+      'Remove backgrounds, center products, and optimize product images for clean marketplace and store listings.',
+    url: '/',
+  },
 };
 
 export default async function HomePage() {

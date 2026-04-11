@@ -4,6 +4,10 @@ import { getSitePage } from '@/lib/sitePages';
 
 export const metadata: Metadata = {
   title: 'Terms of Service — ImgReady',
+  description: 'Read the ImgReady terms of service, subscription rules, and credit usage policy.',
+  alternates: {
+    canonical: '/terms',
+  },
 };
 
 function formatLastUpdated(date: Date) {

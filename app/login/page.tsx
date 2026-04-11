@@ -1,8 +1,17 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import LoginForm from '@/components/LoginForm';
 import { authOptions } from '@/lib/auth';
 import { isAdminEmail } from '@/lib/admin';
+
+export const metadata: Metadata = {
+  title: 'Log In',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 interface LoginPageProps {
   searchParams?: {

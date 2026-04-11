@@ -3,6 +3,10 @@ import PricingPlans from '@/components/PricingPlans';
 
 export const metadata: Metadata = {
   title: 'Pricing — ImgReady',
+  description: 'Simple ImgReady pricing for AI product image background removal and listing-ready image processing.',
+  alternates: {
+    canonical: '/pricing',
+  },
 };
 
 export default function PricingPage() {

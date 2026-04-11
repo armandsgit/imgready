@@ -12,11 +12,35 @@ import { getBrandingSettings } from '@/lib/branding';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.imgready.io'),
   title: {
     default: 'ImgReady',
-    template: '%s',
+    template: '%s | ImgReady',
   },
   description: 'Create clean, listing-ready product images with white backgrounds in seconds.',
+  applicationName: 'ImgReady',
+  keywords: [
+    'product image background remover',
+    'AI product image tool',
+    'white background product photos',
+    'Amazon listing images',
+    'product photo editor',
+  ],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://www.imgready.io',
+    siteName: 'ImgReady',
+    title: 'ImgReady — AI Product Image Tool',
+    description: 'Create clean, listing-ready product images with white backgrounds in seconds.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ImgReady — AI Product Image Tool',
+    description: 'Create clean, listing-ready product images with white backgrounds in seconds.',
+  },
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',

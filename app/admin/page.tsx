@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import AdminAnalyticsDashboard from '@/components/AdminAnalyticsDashboard';
 import AdminBrandingPanel from '@/components/AdminBrandingPanel';
@@ -10,6 +11,14 @@ import { isAdminEmail } from '@/lib/admin';
 import { getBrandingSettings } from '@/lib/branding';
 import { prisma } from '@/lib/prisma';
 import { getAllSitePages } from '@/lib/sitePages';
+
+export const metadata: Metadata = {
+  title: 'Admin',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);

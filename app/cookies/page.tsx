@@ -3,6 +3,10 @@ import MarkdownContent from '@/components/MarkdownContent';
 
 export const metadata: Metadata = {
   title: 'Cookies — ImgReady',
+  description: 'Learn how ImgReady uses cookies for essential site functionality and analytics preferences.',
+  alternates: {
+    canonical: '/cookies',
+  },
 };
 
 const COOKIE_PAGE_CONTENT = `## What cookies are

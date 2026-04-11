@@ -1,3 +1,13 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Maintenance',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
 export default function MaintenancePage() {
   return (
     <main className="min-h-screen bg-[#111014] px-6 py-24 text-white">

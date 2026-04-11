@@ -8,6 +8,10 @@ import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
   title: 'Remove Background — ImgReady',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function RemoveBackgroundPage() {

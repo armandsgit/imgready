@@ -1,7 +1,16 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import ResendVerificationForm from '@/components/ResendVerificationForm';
 import { prisma } from '@/lib/prisma';
 import { hashVerificationToken } from '@/lib/emailVerification';
+
+export const metadata: Metadata = {
+  title: 'Verify Email',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 interface VerifyEmailPageProps {
   searchParams?: {

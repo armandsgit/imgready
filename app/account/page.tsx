@@ -21,6 +21,10 @@ import { syncCheckoutSessionForUser, syncCreditTopUpSessionForUser } from '@/lib
 
 export const metadata: Metadata = {
   title: 'Account — ImgReady',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 function formatDate(value: Date) {
