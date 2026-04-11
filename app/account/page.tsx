@@ -258,6 +258,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   const remainingDays =
     user.planExpiresAt ? Math.ceil((user.planExpiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
   const isCancelling = Boolean(planId !== 'free' && user.cancelAtPeriodEnd && !planExpired);
+  const canUpgradePlan = planId !== 'pro';
   const hasScheduledDowngrade = Boolean(planId !== 'free' && scheduledPlanId && scheduledChangeDate);
   const hasPendingUpgrade = Boolean(user.subscriptionStatus === 'pending_upgrade' && scheduledPlanId);
   const subscriptionStatus =
@@ -342,12 +343,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <Link
-                href="/pricing"
-                className="theme-accent-button inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium"
-              >
-                Upgrade plan
-              </Link>
+              {canUpgradePlan && (
+                <Link
+                  href="/pricing"
+                  className="theme-accent-button inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium"
+                >
+                  Upgrade plan
+                </Link>
+              )}
               <AccountLogoutButton />
             </div>
           </div>
@@ -369,12 +372,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
                   : `Only ${formatCredits(creditBreakdown.totalCredits)} ${creditBreakdown.totalCredits === 1 ? 'credit' : 'credits'} left.`}
               </p>
             </div>
-            <Link
-              href="/pricing"
-              className="theme-secondary-button inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium"
-            >
-              Upgrade
-            </Link>
+            {canUpgradePlan && (
+              <Link
+                href="/pricing"
+                className="theme-secondary-button inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium"
+              >
+                Upgrade
+              </Link>
+            )}
           </div>
         )}
 
@@ -585,12 +590,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
             <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--text-muted)]">Actions</p>
             <h2 className="mt-1 text-2xl font-semibold text-[color:var(--text-primary)]">Manage account</h2>
             <div className="mt-6 flex flex-1 flex-col justify-end gap-3">
-              <Link
-                href="/pricing"
-                className="theme-accent-button inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium"
-              >
-                Upgrade plan
-              </Link>
+              {canUpgradePlan && (
+                <Link
+                  href="/pricing"
+                  className="theme-accent-button inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium"
+                >
+                  Upgrade plan
+                </Link>
+              )}
               {hasScheduledDowngrade && (
                 <UndoDowngradeButton enabled={hasScheduledDowngrade} label={`Keep ${getPlanName(user.plan)}`} />
               )}
